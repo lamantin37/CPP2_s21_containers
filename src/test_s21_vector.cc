@@ -262,7 +262,7 @@ TEST(Modifiers_tests, Emplace1) {
 
   s21::s21_vector<int>::const_iterator s21_it = s21_vec.cbegin();
   auto std_it = std_vec.begin();
-  s21_vec.emplace(s21_it, 0);
+  s21_vec.insert_many(s21_it, 0);
   std_vec.emplace(std_it, 0);
 
   auto i = s21_vec.begin();
@@ -280,7 +280,7 @@ TEST(Modifiers_tests, Emplace2) {
   auto std_it = std_vec.begin();
   std_it++;
   s21_it++;
-  s21_vec.emplace(s21_it, 2);
+  s21_vec.insert_many(s21_it, 2);
   std_vec.emplace(std_it, 2);
 
   auto i = s21_vec.begin();

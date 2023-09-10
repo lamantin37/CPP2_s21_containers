@@ -74,27 +74,6 @@ class s21_iterator {
   }
 
   auto *operator->() const { return &ptr_->key_value; }
-  // std::pair<Key, T> &operator*() const {
-  //   if (ptr_ != nullptr) {
-  //     return ptr_->key_value;
-  //   } else {
-  //     static std::pair<Key, T> default_value = std::pair<Key, T>();
-  //     return default_value;
-  //   }
-  // }
-
-  // Key &operator*() {
-  //   if (ptr_ != nullptr) {
-  //     return ptr_->key_value.first;
-  //   } else {
-  //     static Key default_value = Key();
-  //     return default_value;
-  //   }
-  // }
-
-  // Key *operator->() { return &(ptr_->key_value); }
-
-  // std::pair<Key, T> *operator->() const { return &(ptr_->key_value); }
 
   bool operator==(const s21_iterator &other) const {
     return ptr_ == other.ptr_;

@@ -99,7 +99,7 @@ class s21_set {
 
   // Emplace  ===============================================
   template <class... Args>
-  std::pair<iterator, bool> emplace(Args &&...args) {
+  std::pair<iterator, bool> insert_many(Args &&...args) {
     value_type value(std::forward<Args>(args)...);
     node<value_type> *node_found = rb_tree.find_value(value);
     if (node_found) {

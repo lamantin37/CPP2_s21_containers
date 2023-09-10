@@ -190,7 +190,7 @@ TEST(Modifiers_tests, EmplaceTest) {
   s21::s21_set<int> custom_set = {1, 2, 3, 5, 6, 7};
   std::set<int> std_set = {1, 2, 3, 5, 6, 7};
 
-  custom_set.emplace(4);
+  custom_set.insert_many(4);
   std_set.emplace(4);
 
   auto i = custom_set.begin();

@@ -127,7 +127,7 @@ class s21_multiset {
 
   // Emplace  ===============================================
   template <class... Args>
-  std::pair<iterator, bool> emplace(Args &&...args) {
+  std::pair<iterator, bool> insert_many(Args &&...args) {
     value_type value(std::forward<Args>(args)...);
     rb_tree.insert_value(1, value);
     node<value_type> *new_node = rb_tree.find_value(value);

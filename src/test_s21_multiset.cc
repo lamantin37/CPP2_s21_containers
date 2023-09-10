@@ -232,19 +232,19 @@ TEST(MultisetTest, TestLowerBound) {
 //             (*(std_multiset.upper_bound(2))));
 // }
 
-// TEST(Modifiers_tests, TestEmplace) {
-//   s21::s21_multiset<int> my_multiset = {3, 5, 5, 7, 11, 10, 9};
-//   std::multiset<int> std_multiset = {3, 5, 5, 7, 11, 10, 9};
+TEST(Modifiers_tests, TestEmplace) {
+  s21::s21_multiset<int> my_multiset = {3, 5, 5, 7, 11, 10, 9};
+  std::multiset<int> std_multiset = {3, 5, 5, 7, 11, 10, 9};
 
-//   my_multiset.emplace(5);
-//   std_multiset.emplace(5);
+  my_multiset.insert_many(5);
+  std_multiset.emplace(5);
 
-//   auto i = my_multiset.begin();
-//   auto j = std_multiset.begin();
-//   for (; i != my_multiset.end(); i++, j++) {
-//     ASSERT_EQ(*i, *j);
-//   }
-// }
+  auto i = my_multiset.begin();
+  auto j = std_multiset.begin();
+  for (; i != my_multiset.end(); i++, j++) {
+    ASSERT_EQ(*i, *j);
+  }
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

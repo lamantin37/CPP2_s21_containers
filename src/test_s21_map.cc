@@ -206,9 +206,9 @@ TEST(Modifiers_tests, EmplaceTest) {
   s21::s21_map<int, std::string> s21_map = {
       {1, "one"}, {3, "three"}, {5, "five"}};
   std::map<int, std::string> std_map = {{1, "one"}, {3, "three"}, {5, "five"}};
-  s21_map.emplace(2, "two");
+  s21_map.insert_many(2, "two");
   std_map.emplace(2, "two");
-  s21_map.emplace(4, "four");
+  s21_map.insert_many(4, "four");
   std_map.emplace(4, "four");
 
   auto i = s21_map.begin();

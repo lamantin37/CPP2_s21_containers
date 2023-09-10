@@ -18,7 +18,7 @@ class s21_map {
   using size_type = size_t;
   using iterator = s21_iterator<Key, T>;
   // Map Member functions ==================================
-  s21_map() {}
+  explicit s21_map() : rb_tree(){};
   s21_map(std::initializer_list<value_type> const &items) {
     for (const auto &item : items) {
       rb_tree.insert_value(0, item.first, item.second);
@@ -136,7 +136,7 @@ class s21_map {
 
   // Emplace  ===============================================
   template <class... Args>
-  std::pair<iterator, bool> emplace(Args &&...args) {
+  std::pair<iterator, bool> insert_many(Args &&...args) {
     std::pair<Key, T> value(std::forward<Args>(args)...);
     node<Key, T> *node_found = rb_tree.find_value(value.first);
     if (node_found) {

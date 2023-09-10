@@ -314,7 +314,7 @@ class s21_vector {
   //	-----------------------------------------------------------
   T *getArray() { return array_; };
   template <class... Args>
-  iterator emplace(const_iterator pos, Args &&...args) {
+  iterator insert_many(const_iterator pos, Args &&...args) {
     if (pos < cbegin() || pos > cend()) {
       throw std::out_of_range("Iterator is out of range.");
     }
@@ -329,7 +329,7 @@ class s21_vector {
   }
   template <class... Args>
   void emplace_back(Args &&...args) {
-    emplace(cend(), std::forward<Args>(args)...);
+    insert_many(cend(), std::forward<Args>(args)...);
   }
 
  private:
