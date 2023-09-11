@@ -17,74 +17,83 @@ class s21_multiset {
   using size_type = size_t;
   using iterator = s21_iterator<Key>;
   // Set Member functions ==================================
-  Tree<value_type, int> &getTree() { return rb_tree; }
   s21_multiset() : rb_tree(){};
   s21_multiset(std::initializer_list<value_type> const &items) {
     for (const auto &item : items) {
-      rb_tree.insert_value(1, item);
+      rb_tree.insertValue(1, item);
     }
   }
-  s21_multiset(s21_multiset &s) { copy(s.rb_tree.getNode()); }
+  s21_multiset(const s21_multiset &s) { copy(s.rb_tree.getNode()); }
+  s21_multiset &operator=(const s21_multiset &s) {
+    if (this != &s) {
+      clear();
+      copy(s.rb_tree.getNode());
+    }
+    return *this;
+  }
   s21_multiset(s21_multiset &&s) {
     rb_tree = std::move(s.rb_tree);
     s.clear();
   }
-  ~s21_multiset() { clear(); }
   s21_multiset &operator=(s21_multiset &&s) {
     if (this != &s) {
-      this->clear();
-      this->rb_tree = std::move(s.rb_tree);
+      clear();
+      rb_tree = std::move(s.rb_tree);
+      s.clear();
     }
     return *this;
   }
+  ~s21_multiset() { clear(); }
   // ========================================================
 
   // Set Iterators  =========================================
-  iterator begin() {
+  iterator begin() noexcept {
     if (empty())
       return iterator(nullptr, &rb_tree);
     else
-      return iterator(rb_tree.get_minimum(), &rb_tree);
+      return iterator(rb_tree.getMinimum(), &rb_tree);
   }
-  iterator end() { return iterator(nullptr, &rb_tree); }
+  iterator end() noexcept { return iterator(nullptr, &rb_tree); }
   // ========================================================
 
   // Set Capacity ===========================================
-  bool empty() { return rb_tree.getSize() == 0; }
-  size_type size() { return rb_tree.getSize(); }
-  size_type max_size() {
+  bool empty() const noexcept { return rb_tree.getSize() == 0; }
+  size_type size() const noexcept { return rb_tree.getSize(); }
+  size_type max_size() const noexcept {
     return std::numeric_limits<size_t>::max() / sizeof(node<value_type>) / 2;
   }
   // ========================================================
 
   // Set Modifiers  =========================================
-  void clear() {
-    clear_node(rb_tree.getNode());
+  void clear() noexcept {
+    clearNode(rb_tree.getNode());
     rb_tree = Tree<value_type>();
   }
   iterator insert(const value_type &value) {
-    rb_tree.insert_value(1, value);
-    node<value_type> *new_node = rb_tree.find_value(value);
+    rb_tree.insertValue(1, value);
+    node<value_type> *new_node = rb_tree.findValue(value);
     return iterator(new_node, &rb_tree);
   }
-  void erase(iterator pos) {  // обработать удаление последнего элемента
+  void erase(
+      iterator pos) noexcept {  // обработать удаление последнего элемента
     if (pos != end()) {
-      rb_tree.remove_value(pos->first);
+      rb_tree.removeValue(*pos);
+      pos++;
     }
   }
-  void swap(s21_multiset &other) { std::swap(rb_tree, other.rb_tree); }
+  void swap(s21_multiset &other) noexcept { std::swap(rb_tree, other.rb_tree); }
   void merge(s21_multiset &other) {
     for (iterator it = other.begin(); it != other.end(); it++) {
-      rb_tree.insert_value(1, *it);  //
+      rb_tree.insertValue(1, *it);  //
     }
     other.clear();
   }
   // ========================================================
 
   // Set Lookup  ============================================
-  bool contains(const Key &key) { return rb_tree.find_value(key); }
+  bool contains(const Key &key) { return rb_tree.findValue(key); }
   iterator find(const Key &key) {
-    node<Key> *node_found = rb_tree.find_value(key);
+    node<Key> *node_found = rb_tree.findValue(key);
     if (node_found) {
       return iterator(node_found, &rb_tree);
     } else {
@@ -99,14 +108,15 @@ class s21_multiset {
     return counter;
   }
   std::pair<iterator, iterator> equal_range(const Key &key) {
-    iterator it1(rb_tree.find_value(key), &rb_tree);
+    iterator it1(rb_tree.findValue(key), &rb_tree);
     iterator it2 = begin();
     std::pair<iterator, iterator> it_pair;
-    for (it2; it2 != end(); it2++) {
+    for (; it2 != end() && (*it2) <= key; it2++) {
       if ((*it2) == key) {
-        it_pair = std::make_pair(it1, it2);
+        it1 = it2;
       }
     }
+    it_pair = std::make_pair(it1, it2);
     return it_pair;
   }
   iterator lower_bound(const Key &key) {
@@ -125,29 +135,29 @@ class s21_multiset {
   }
   // ========================================================
 
-  // Emplace  ===============================================
+  // Insert many  ===========================================
   template <class... Args>
   std::pair<iterator, bool> insert_many(Args &&...args) {
     value_type value(std::forward<Args>(args)...);
-    rb_tree.insert_value(1, value);
-    node<value_type> *new_node = rb_tree.find_value(value);
+    rb_tree.insertValue(1, value);
+    node<value_type> *new_node = rb_tree.findValue(value);
     return std::make_pair(iterator(new_node, &rb_tree), true);
   }
   // ========================================================
  private:
   Tree<value_type, int> rb_tree;
-  void clear_node(node<value_type> *root) {
+  void clearNode(node<value_type> *root) {
     if (root == nullptr) {
       return;
     }
-    clear_node(root->left);
-    clear_node(root->right);
+    clearNode(root->left);
+    clearNode(root->right);
     delete root;
   }
   void copy(node<value_type> *n) {
     if (n) {
-      if (!rb_tree.find_value(n->key_value.first)) {
-        rb_tree.insert_value(1, n->key_value.first);
+      if (!rb_tree.findValue(n->key_value.first)) {
+        rb_tree.insertValue(1, n->key_value.first);
         copy(n->left);
         copy(n->right);
       }

@@ -13,9 +13,7 @@ TEST(Member_functions_tests, DefaultConstructor) {
 TEST(Member_functions_tests, InitializerListConstructor) {
   s21::s21_multiset<int> mset = {1, 2, 3, 4};
   std::multiset<int> std_mset = {1, 2, 3, 4};
-
   EXPECT_EQ(mset.size(), std_mset.size());
-
   auto std_it = std_mset.begin();
   for (auto it = mset.begin(); it != mset.end(); it++, std_it++) {
     EXPECT_EQ(*it, *std_it);
@@ -31,6 +29,20 @@ TEST(Member_functions_tests, CopyConstructor) {
   auto mset1_it = mset1.begin();
   for (auto it = mset2.begin(); it != mset2.end(); it++, mset1_it++) {
     EXPECT_EQ(*it, *mset1_it);
+  }
+}
+
+TEST(Member_functions_tests, CopyAssignmentConstructor) {
+  s21::s21_multiset<int> mset1 = {1, 2, 3, 4};
+  s21::s21_multiset<int> mset2;
+
+  mset1 = mset2;
+  EXPECT_EQ(mset1.size(), mset2.size());
+
+  auto i = mset1.begin();
+  auto j = mset2.begin();
+  for (; i != mset1.end(); i++, j++) {
+    ASSERT_EQ(*i, *j);
   }
 }
 
@@ -51,13 +63,6 @@ TEST(Member_functions_tests, MoveAssignmentOperator) {
   EXPECT_EQ(mset2.size(), 4);
 }
 
-TEST(Member_functions_tests, TestConstructor) {
-  s21::s21_multiset<int> my_multiset;
-  std::multiset<int> std_multiset;
-
-  ASSERT_EQ(my_multiset.size(), std_multiset.size());
-}
-
 TEST(Iterators_tests, Begin) {
   s21::s21_multiset<int> mset = {1, 2, 3, 4};
   std::multiset<int> std_mset = {1, 2, 3, 4};
@@ -65,11 +70,11 @@ TEST(Iterators_tests, Begin) {
   EXPECT_EQ((*mset.begin()), *std_mset.begin());
 }
 
-// TEST(Iterators_tests, End) {
-//   s21::s21_multiset<int> mset;
-//   std::multiset<int> std_mset;
-//   EXPECT_EQ((mset.end()), std_mset.end());
-// }
+TEST(Iterators_tests, End) {
+  s21::s21_multiset<int> mset;
+  std::multiset<int> std_mset;
+  EXPECT_EQ(*mset.end(), *std_mset.end());
+}
 
 TEST(Capacity_tests, Empty) {
   s21::s21_multiset<int> mset;
@@ -130,11 +135,12 @@ TEST(Modifiers_tests, TestInsert) {
 //   s21::s21_multiset<int> mset = {1, 2, 3, 4};
 //   std::multiset<int> std_mset = {1, 2, 3, 4};
 
-//   mset.erase(mset.begin());
-//   std_mset.erase(std_mset.begin());
-
-//   EXPECT_EQ(mset.size(), std_mset.size());
-//   EXPECT_EQ((*mset.begin()).first, *std_mset.begin());
+//   mset.erase((mset.begin()));
+//   std_mset.erase((std_mset.begin()));
+//   std::cout << *(mset.begin()) << std::endl;
+//   std::cout << *(std_mset.begin()) << std::endl;
+//   // EXPECT_EQ(mset.size(), std_mset.size());
+//   // EXPECT_EQ(*mset.begin(), *std_mset.begin());
 // }
 
 TEST(Modifiers_tests, Swap) {
@@ -175,6 +181,21 @@ TEST(Modifiers_tests, Merge) {
   ASSERT_EQ(mset1.size(), std_mset1.size());
 }
 
+TEST(MultisetTest, TestContains) {
+  s21::s21_multiset<int> mset = {1, 2, 3, 4};
+  std::multiset<int> std_mset = {1, 2, 3, 4};
+
+  EXPECT_EQ(mset.contains(3), std_mset.count(3));
+  EXPECT_EQ(mset.contains(13), std_mset.count(13));
+}
+
+TEST(Lookup_tests, TestFind) {
+  s21::s21_multiset<int> mset = {1, 2, 3, 4};
+  std::multiset<int> std_mset = {1, 2, 3, 4};
+
+  EXPECT_EQ((*mset.find(3)), *std_mset.find(3));
+}
+
 TEST(Lookup_tests, TestCount) {
   s21::s21_multiset<int> mset = {1, 2, 2, 3, 4};
   std::multiset<int> std_mset = {1, 2, 2, 3, 4};
@@ -188,31 +209,16 @@ TEST(Lookup_tests, TestCount2) {
   ASSERT_EQ(my_multiset.count(1), std_multiset.count(1));
 }
 
-TEST(Lookup_tests, TestFind) {
-  s21::s21_multiset<int> mset = {1, 2, 3, 4};
-  std::multiset<int> std_mset = {1, 2, 3, 4};
+TEST(MultisetTest, TestEqualRange) {
+  s21::s21_multiset<int> mset = {1, 2, 2, 3, 4};
+  std::multiset<int> std_mset = {1, 2, 2, 3, 4};
 
-  EXPECT_EQ((*mset.find(3)), *std_mset.find(3));
+  auto mset_range = mset.equal_range(2);
+  auto std_mset_range = std_mset.equal_range(2);
+
+  EXPECT_EQ(*(mset_range.first), *(std_mset_range.first));
+  EXPECT_EQ(*(mset_range.second), *(std_mset_range.second));
 }
-
-TEST(MultisetTest, TestContains) {
-  s21::s21_multiset<int> mset = {1, 2, 3, 4};
-  std::multiset<int> std_mset = {1, 2, 3, 4};
-
-  EXPECT_EQ(mset.contains(3), std_mset.count(3));
-  EXPECT_EQ(mset.contains(13), std_mset.count(13));
-}
-
-// TEST(MultisetTest, TestEqualRange) {
-//   s21::s21_multiset<int> mset = {1, 2, 2, 3, 4};
-//   std::multiset<int> std_mset = {1, 2, 2, 3, 4};
-
-//   auto mset_range = mset.equal_range(2);
-//   auto std_mset_range = std_mset.equal_range(2);
-
-//   EXPECT_EQ(std::distance(mset_range.first, mset_range.second),
-//             std::distance(std_mset_range.first, std_mset_range.second));
-// }
 
 TEST(MultisetTest, TestLowerBound) {
   s21::s21_multiset<int> my_multiset = {7, 11, 8, 8, 1, 3};
@@ -222,17 +228,15 @@ TEST(MultisetTest, TestLowerBound) {
   ASSERT_EQ(*(my_multiset.lower_bound(10)), (*(std_multiset.lower_bound(10))));
 }
 
-// TEST(MultisetTest, TestUpperBound) {
-//   s21::s21_multiset<int> my_multiset = {3, 5, 5, 7, 11, 10, 9};
-//   std::multiset<int> std_multiset = {3, 5, 5, 7, 11, 10, 9};
+TEST(MultisetTest, TestUpperBound) {
+  s21::s21_multiset<int> my_multiset = {3, 5, 5, 7, 11, 10, 9};
+  std::multiset<int> std_multiset = {3, 5, 5, 7, 11, 10, 9};
 
-//   ASSERT_EQ((my_multiset.upper_bound(3)),
-//             (*(std_multiset.upper_bound(3))));
-//   ASSERT_EQ((my_multiset.upper_bound(2)),
-//             (*(std_multiset.upper_bound(2))));
-// }
+  ASSERT_EQ(*(my_multiset.upper_bound(3)), (*(std_multiset.upper_bound(3))));
+  ASSERT_EQ(*(my_multiset.upper_bound(2)), (*(std_multiset.upper_bound(2))));
+}
 
-TEST(Modifiers_tests, TestEmplace) {
+TEST(Bonus_tests, TestInsertMany) {
   s21::s21_multiset<int> my_multiset = {3, 5, 5, 7, 11, 10, 9};
   std::multiset<int> std_multiset = {3, 5, 5, 7, 11, 10, 9};
 

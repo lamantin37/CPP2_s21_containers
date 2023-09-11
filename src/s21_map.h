@@ -153,7 +153,7 @@ class s21_map {
   }
   // ========================================================
 
-  // Insert Many  ===============================================
+  // Insert Many  ===========================================
   template <class... Args>
   std::pair<iterator, bool> insert_many(Args &&...args) {
     std::pair<Key, T> value(std::forward<Args>(args)...);
