@@ -56,29 +56,29 @@ class Tree {
   }
   size_t getSize() const { return size_; }
   node<K, V> *getNode() const { return node_; }
-  void insert_value(bool is_multiset, const K &key, const V &value = 0) {
+  void insertValue(bool is_multiset, const K &key, const V &value = 0) {
     if (node_ == nullptr) {
       node_ = new node<K, V>(key, value, kBlack);
       size_++;
     } else {
-      node<K, V> *newNode = insert_node(is_multiset, node_, key, value);
+      node<K, V> *newNode = insertNode(is_multiset, node_, key, value);
       if (newNode != nullptr) {
-        insert_balancing(newNode);
+        insertBalancing(newNode);
         size_++;
       }
     }
   }
-  node<K, V> *find_value(const K &key) { return binary_search(node_, key); }
-  void remove_value(const K &key) {
-    node<K, V> *removing_node = find_value(key);
+  node<K, V> *findValue(const K &key) { return binarySearch(node_, key); }
+  void removeValue(const K &key) {
+    node<K, V> *removing_node = findValue(key);
     if (removing_node) {
       size_--;
-      remove_node(removing_node);
+      removeNode(removing_node);
     } else {
       std::cout << "No such value in the tree" << std::endl;
     }
   }
-  node<K, V> *get_minimum() const {
+  node<K, V> *getMinimum() const {
     if (node_ == nullptr) {
       return nullptr;
     }
@@ -88,7 +88,7 @@ class Tree {
     }
     return current;
   }
-  node<K, V> *get_maximum() const {
+  node<K, V> *getMaximum() const {
     node<K, V> *current = node_;
     while (current && current->right != nullptr) {
       current = current->right;
@@ -114,12 +114,11 @@ class Tree {
   }
   void clearTree(node<K, V> *root) {
     if (!root) return;
-
     clearTree(root->left);
     clearTree(root->right);
     delete root;
   }
-  void left_rotate(node<K, V> *root) {
+  void leftRotate(node<K, V> *root) {
     node<K, V> *new_root = root->right;
     root->right = new_root->left;
     if (new_root->left) new_root->left->parent = root;
@@ -133,7 +132,7 @@ class Tree {
     new_root->left = root;
     root->parent = new_root;
   }
-  void right_rotate(node<K, V> *root) {
+  void rightRotate(node<K, V> *root) {
     node<K, V> *new_root = root->left;
     root->left = new_root->right;
     if (new_root->right) new_root->right->parent = root;
@@ -147,29 +146,29 @@ class Tree {
     new_root->right = root;
     root->parent = new_root;
   }
-  bool is_black(node<K, V> *n) { return n != nullptr && n->color == kBlack; }
-  bool is_red(node<K, V> *n) { return n != nullptr && n->color == kRed; }
-  bool black_sibling_red_child(node<K, V> *n) {
-    node<K, V> *s = get_sibling(n);
-    return is_black(s) && (is_red(s->left) || is_red(s->right));
+  bool isBlack(node<K, V> *n) { return n != nullptr && n->color == kBlack; }
+  bool isRed(node<K, V> *n) { return n != nullptr && n->color == kRed; }
+  bool blackSiblingRedChild(node<K, V> *n) {
+    node<K, V> *s = getSibling(n);
+    return isBlack(s) && (isRed(s->left) || isRed(s->right));
   }
-  node<K, V> *get_sibling(node<K, V> *n) {
+  node<K, V> *getSibling(node<K, V> *n) {
     if (n == n->parent->left)
       return n->parent->right;
     else
       return n->parent->left;
   }
-  bool is_siblingRed(node<K, V> *n) {
-    node<K, V> *s = get_sibling(n);
-    return is_red(s);
+  bool isSiblingRed(node<K, V> *n) {
+    node<K, V> *s = getSibling(n);
+    return isRed(s);
   }
-  void make_black(node<K, V> *n) {
+  void makeBlack(node<K, V> *n) {
     if (n != nullptr) n->color = kBlack;
   }
-  void make_red(node<K, V> *n) {
+  void makeRed(node<K, V> *n) {
     if (n != nullptr) n->color = kRed;
   }
-  void insert_balancing(node<K, V> *root) {
+  void insertBalancing(node<K, V> *root) {
     while (root->parent && root->parent->color == kRed) {
       if (root->parent == root->parent->parent->left) {
         node<K, V> *new_root = root->parent->parent->right;  // расмотрим дядю
@@ -184,11 +183,11 @@ class Tree {
                   ->right) {  // если это правый потомок выполняем левый поворот
             root = root->parent;  // обновляем указатель - теперь указываем на
                                   // родителя
-            left_rotate(root);
+            leftRotate(root);
           }
           root->parent->color = kBlack;
           root->parent->parent->color = kRed;
-          right_rotate(root->parent->parent);
+          rightRotate(root->parent->parent);
         }
       } else {
         node<K, V> *new_root = root->parent->parent->left;
@@ -200,17 +199,17 @@ class Tree {
         } else {
           if (root == root->parent->left) {
             root = root->parent;
-            right_rotate(root);
+            rightRotate(root);
           }
           root->parent->color = kBlack;
           root->parent->parent->color = kRed;
-          left_rotate(root->parent->parent);
+          leftRotate(root->parent->parent);
         }
       }
     }
     node_->color = kBlack;
   }
-  void remove_balancing(node<K, V> *tested_node) {
+  void removeBalancing(node<K, V> *tested_node) {
     if (!tested_node->parent) {
       if (tested_node->left) {
         node_ = tested_node->left;
@@ -225,58 +224,58 @@ class Tree {
         (tested_node->left == nullptr || tested_node->left->color == kBlack) &&
         (tested_node->right == nullptr ||
          tested_node->right->color == kBlack)) {
-      make_red(tested_node);
+      makeRed(tested_node);
       if (tested_node->parent) {
-        remove_balancing(tested_node->parent);
-      } else if (is_siblingRed(tested_node)) {  // брат красный
+        removeBalancing(tested_node->parent);
+      } else if (isSiblingRed(tested_node)) {  // брат красный
         node<K, V> *par =
             tested_node->parent;  // брат становится родителем отца
-        node<K, V> *sib = get_sibling(tested_node);
-        make_red(par);    // красим отца в красный
-        make_black(sib);  // а брата в чёрный
+        node<K, V> *sib = getSibling(tested_node);
+        makeRed(par);    // красим отца в красный
+        makeBlack(sib);  // а брата в чёрный
         if (tested_node == par->left) {
-          left_rotate(par);
+          leftRotate(par);
         } else {
-          right_rotate(par);
+          rightRotate(par);
         }
-        remove_balancing(tested_node);
-      } else if (black_sibling_red_child(
+        removeBalancing(tested_node);
+      } else if (blackSiblingRedChild(
                      tested_node)) {  // черный брат с красным ребёнком
         node<K, V> *par = tested_node->parent;
-        node<K, V> *sib = get_sibling(tested_node);
-        if (is_black(sib->right)) {  // чёрный правый ребенок
-          make_black(sib->left);  // перекрашиваем красного правого ребенка
-                                  // брата в чёрный
-          make_red(sib);  // а брата в чёрный
-          right_rotate(sib);
+        node<K, V> *sib = getSibling(tested_node);
+        if (isBlack(sib->right)) {  // чёрный правый ребенок
+          makeBlack(sib->left);  // перекрашиваем красного правого ребенка
+                                 // брата в чёрный
+          makeRed(sib);  // а брата в чёрный
+          rightRotate(sib);
         } else {  // красный правый ребёнок
           sib->color = par->color;  // перекрашиваем брата в цвет отца
-          make_black(par);  // перекрашиваем отца в чёрный
-          make_black(sib->right);  // и ребёнка тоже в чёрный
+          makeBlack(par);  // перекрашиваем отца в чёрный
+          makeBlack(sib->right);  // и ребёнка тоже в чёрный
           if (tested_node == par->left) {
-            left_rotate(par);
+            leftRotate(par);
           } else {
-            right_rotate(par);
+            rightRotate(par);
           }
         }
       } else {  // оба рёбнка брата чёрные
-        make_red(get_sibling(tested_node));
-        if (!is_red(tested_node->parent)) {
-          remove_balancing(tested_node->parent);
+        makeRed(getSibling(tested_node));
+        if (!isRed(tested_node->parent)) {
+          removeBalancing(tested_node->parent);
         } else {
-          make_black(tested_node->parent);
+          makeBlack(tested_node->parent);
         }
       }
     }
   }
-  node<K, V> *get_next(node<K, V> *current) {
+  node<K, V> *getNext(node<K, V> *current) {
     node<K, V> *next_node = current;
     while (next_node->left) {
       next_node = next_node->left;
     }
     return next_node;
   }
-  void remove_node(node<K, V> *node_to_remove) {
+  void removeNode(node<K, V> *node_to_remove) {
     if (!node_to_remove->left &&
         !node_to_remove->right) {  // у вершины нет детей
       if (node_to_remove == node_to_remove->parent->left) {
@@ -284,14 +283,14 @@ class Tree {
       } else {
         node_to_remove->parent->right = nullptr;
       }
-      remove_balancing(node_to_remove);
+      removeBalancing(node_to_remove);
       delete node_to_remove;
       return;
     } else if (node_to_remove->left &&
                node_to_remove->right) {  // у вершины есть оба ребёнка
-      node<K, V> *leftmost_node = get_next(node_to_remove->right);
+      node<K, V> *leftmost_node = getNext(node_to_remove->right);
       node_to_remove->key_value.first = leftmost_node->key_value.first;
-      remove_node(leftmost_node);
+      removeNode(leftmost_node);
       return;
     } else if (node_to_remove->left ||
                node_to_remove->right) {  // у вершины один ребёнок
@@ -312,14 +311,14 @@ class Tree {
           node_to_remove->right->parent = node_to_remove->parent;
         }
       }
-      remove_balancing(node_to_remove);
+      removeBalancing(node_to_remove);
       delete node_to_remove;
       return;
     }
   }
 
-  node<K, V> *insert_node(bool is_multiset, node<K, V> *parent, const K &key,
-                          const V &value) {
+  node<K, V> *insertNode(bool is_multiset, node<K, V> *parent, const K &key,
+                         const V &value) {
     node<K, V> *current = parent;
     node<K, V> *last = parent;
     while (current != nullptr) {
@@ -349,7 +348,7 @@ class Tree {
     return new_node;
   }
 
-  node<K, V> *binary_search(node<K, V> *current_node, const K &key) {
+  node<K, V> *binarySearch(node<K, V> *current_node, const K &key) {
     while (current_node != nullptr) {
       if (key < current_node->key_value.first) {
         current_node = current_node->left;

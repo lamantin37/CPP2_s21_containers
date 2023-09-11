@@ -38,7 +38,7 @@ class s21_iterator {
 
   s21_iterator &operator--(int) {
     if (!ptr_) {
-      ptr_ = tree_->get_maximum();
+      ptr_ = tree_->getMaximum();
     } else {
       if (ptr_->left) {
         ptr_ = ptr_->left;

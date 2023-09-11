@@ -21,23 +21,31 @@ TEST(Member_functions_tests, InitializerListConstructor) {
   ASSERT_TRUE(custom_set.contains(5));
 }
 
-TEST(Member_functions_tests, TestClear) {
-  s21::s21_set<int> s;
-  s.insert(1);
-  s.clear();
-  ASSERT_TRUE(s.empty());
+TEST(Member_functions_tests, CopyConstructor) {
+  s21::s21_set<int> original = {1, 2, 3, 4, 5};
+  s21::s21_set<int> copied(original);
+
+  ASSERT_EQ(original.size(), copied.size());
+
+  auto i = original.begin();
+  auto j = copied.begin();
+  for (; i != original.end(); i++, j++) {
+    ASSERT_EQ(*i, *j);
+  }
 }
 
-TEST(Member_functions_tests, CopyConstructor) {
-  s21::s21_set<int> custom_set1 = {1, 2, 3, 4, 5};
-  s21::s21_set<int> custom_set2 = custom_set1;
+TEST(Member_functions_tests, CopyAssignmentOperator) {
+  s21::s21_set<int> original = {1, 2, 3, 4, 5};
+  s21::s21_set<int> copied(original);
 
-  ASSERT_EQ(custom_set2.size(), custom_set1.size());
-  ASSERT_TRUE(custom_set2.contains(1));
-  ASSERT_TRUE(custom_set2.contains(2));
-  ASSERT_TRUE(custom_set2.contains(3));
-  ASSERT_TRUE(custom_set2.contains(4));
-  ASSERT_TRUE(custom_set2.contains(5));
+  copied = original;
+  ASSERT_EQ(original.size(), copied.size());
+
+  auto i = original.begin();
+  auto j = copied.begin();
+  for (; i != original.end(); i++, j++) {
+    ASSERT_EQ(*i, *j);
+  }
 }
 
 TEST(Member_functions_tests, MoveConstructor) {
@@ -53,12 +61,6 @@ TEST(Member_functions_tests, MoveConstructor) {
   ASSERT_TRUE(custom_set1.empty());
 }
 
-TEST(Member_functions_tests, TestDestructor) {
-  s21::s21_set<int> *s = new s21::s21_set<int>();
-  s->insert(1);
-  delete s;
-}
-
 TEST(Member_functions_tests, TestAssignmentOperator) {
   s21::s21_set<int> s1;
   s1.insert(1);
@@ -68,11 +70,24 @@ TEST(Member_functions_tests, TestAssignmentOperator) {
   ASSERT_TRUE(s1.empty());
 }
 
+TEST(Member_functions_tests, TestDestructor) {
+  s21::s21_set<int> *s = new s21::s21_set<int>();
+  s->insert(1);
+  delete s;
+}
+
 TEST(Iterators_tests, TestBeginEnd) {
   s21::s21_set<int> s;
   s.insert(1);
   ASSERT_EQ((*s.begin()), 1);
   ASSERT_EQ(s.end(), s21::s21_set<int>::iterator());
+}
+
+TEST(Capacity_tests, TestEmpty) {
+  s21::s21_set<int> s;
+  ASSERT_TRUE(s.empty());
+  s.insert(1);
+  ASSERT_FALSE(s.empty());
 }
 
 TEST(Capacity_tests, TestSize) {
@@ -87,18 +102,11 @@ TEST(Capacity_tests, TestMaxSize) {
   ASSERT_EQ(s.max_size(), st.max_size());
 }
 
-TEST(Capacity_tests, TestClear) {
+TEST(Modifiers_tests, TestClear) {
   s21::s21_set<int> s;
   s.insert(1);
   s.clear();
   ASSERT_TRUE(s.empty());
-}
-
-TEST(Capacity_tests, TestEmpty) {
-  s21::s21_set<int> s;
-  ASSERT_TRUE(s.empty());
-  s.insert(1);
-  ASSERT_FALSE(s.empty());
 }
 
 TEST(Modifiers_tests, InsertTest) {
@@ -186,7 +194,7 @@ TEST(Lookup_tests, TestFind) {
   ASSERT_EQ(it, s.end());
 }
 
-TEST(Modifiers_tests, EmplaceTest) {
+TEST(Bonus_tests, InsertManyTest) {
   s21::s21_set<int> custom_set = {1, 2, 3, 5, 6, 7};
   std::set<int> std_set = {1, 2, 3, 5, 6, 7};
 
