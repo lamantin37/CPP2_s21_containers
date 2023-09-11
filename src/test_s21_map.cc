@@ -5,22 +5,22 @@
 #include "s21_map.h"
 
 TEST(Member_functions_tests, DefaultConstructor) {
-  s21::s21_map<int, int> s;
-  std::map<int, int> m;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_TRUE(s.empty());
-  ASSERT_EQ(s.size(), m.size());
+  ASSERT_TRUE(s21map.empty());
+  ASSERT_EQ(s21map.size(), stdmap.size());
 }
 
 TEST(Member_functions_tests, InitializerListConstructor) {
-  s21::s21_map<int, int> s{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> m{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
-  ASSERT_EQ(s.size(), m.size());
+  ASSERT_EQ(s21map.size(), stdmap.size());
 
-  for (auto it = s.begin(); it != s.end(); it++) {
+  for (auto it = s21map.begin(); it != s21map.end(); it++) {
     auto pair = it;
-    ASSERT_EQ(pair->second, m[pair->first]);
+    ASSERT_EQ(pair->second, stdmap[pair->first]);
   }
 }
 
@@ -36,20 +36,24 @@ TEST(Member_functions_tests, CopyConstructor) {
   }
 }
 
+TEST(Member_functions_tests, CopyAssignmentOperator) {
+  s21::s21_map<int, int> original{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> copied;
+
+  copied = original;
+
+  ASSERT_EQ(copied.size(), 3);
+  ASSERT_EQ(copied[1], original[1]);
+  ASSERT_EQ(copied[3], original[3]);
+  ASSERT_EQ(copied[5], original[5]);
+}
+
 TEST(Member_functions_tests, MoveConstructor) {
   s21::s21_map<int, int> first_map{{1, 2}, {3, 4}, {5, 6}};
   s21::s21_map<int, int> second_map(std::move(first_map));
 
   ASSERT_TRUE(first_map.empty());
   ASSERT_EQ(second_map.size(), 3);
-}
-
-TEST(Member_functions_tests, Destructor) {
-  auto s = new s21::s21_map<int, int>{{1, 2}, {3, 4}, {5, 6}};
-
-  ASSERT_EQ(s->size(), 3);
-
-  delete s;
 }
 
 TEST(Member_functions_tests, MoveAssignmentOperator) {
@@ -65,134 +69,142 @@ TEST(Member_functions_tests, MoveAssignmentOperator) {
   ASSERT_EQ(assigned[5], 6);
 }
 
-TEST(Iterators_tests, Begin) {
-  s21::s21_map<int, int> s21Map{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap{{1, 2}, {3, 4}, {5, 6}};
+TEST(Member_functions_tests, Destructor) {
+  auto s21map = new s21::s21_map<int, int>{{1, 2}, {3, 4}, {5, 6}};
 
-  ASSERT_EQ(s21Map.begin()->first, stdMap.begin()->first);
-  ASSERT_EQ(s21Map.begin()->second, stdMap.begin()->second);
+  ASSERT_EQ(s21map->size(), 3);
+
+  delete s21map;
+}
+
+TEST(Element_access_tests, OperatorBracket) {
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
+
+  s21map[1] = 2;
+  stdmap[1] = 2;
+
+  ASSERT_EQ(s21map[1], stdmap[1]);
+}
+
+TEST(Element_access_tests, At) {
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
+
+  s21map.insert({1, 2});
+  stdmap.insert({1, 2});
+
+  ASSERT_EQ(s21map.at(1), stdmap.at(1));
+}
+
+TEST(Iterators_tests, Begin) {
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
+
+  ASSERT_EQ(s21map.begin()->first, stdmap.begin()->first);
+  ASSERT_EQ(s21map.begin()->second, stdmap.begin()->second);
 }
 
 TEST(Iterators_tests, End) {
-  s21::s21_map<int, int> s21Map{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
-  auto s21MapEnd = s21Map.end();
+  auto s21MapEnd = s21map.end();
   s21MapEnd--;
-  auto stdMapEnd = stdMap.end();
+  auto stdMapEnd = stdmap.end();
   stdMapEnd--;
 
   ASSERT_EQ(s21MapEnd->first, stdMapEnd->first);
   ASSERT_EQ(s21MapEnd->second, stdMapEnd->second);
 }
 
-TEST(Element_access_tests, At) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
-
-  s21Map.insert({1, 2});
-  stdMap.insert({1, 2});
-
-  ASSERT_EQ(s21Map.at(1), stdMap.at(1));
-}
-
-TEST(Element_access_tests, OperatorBracket) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
-
-  s21Map[1] = 2;
-  stdMap[1] = 2;
-
-  ASSERT_EQ(s21Map[1], stdMap[1]);
-}
-
 TEST(Capacity_tests, Empty) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_EQ(s21Map.empty(), stdMap.empty());
+  ASSERT_EQ(s21map.empty(), stdmap.empty());
 }
 
 TEST(Capacity_tests, Size) {
-  s21::s21_map<int, int> s21Map{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
-  ASSERT_EQ(s21Map.size(), stdMap.size());
+  ASSERT_EQ(s21map.size(), stdmap.size());
 }
 
 TEST(Capacity_tests, MaxSize) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_EQ(s21Map.max_size(), stdMap.max_size());
+  ASSERT_EQ(s21map.max_size(), stdmap.max_size());
 }
 
 TEST(Modifiers_tests, Clear) {
-  s21::s21_map<int, int> s21Map{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
-  s21Map.clear();
-  stdMap.clear();
+  s21map.clear();
+  stdmap.clear();
 
-  ASSERT_EQ(s21Map.empty(), stdMap.empty());
+  ASSERT_EQ(s21map.empty(), stdmap.empty());
 }
 
 TEST(Modifiers_tests, Insert) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_EQ(s21Map.insert({1, 2}).second, stdMap.insert({1, 2}).second);
+  ASSERT_EQ(s21map.insert({1, 2}).second, stdmap.insert({1, 2}).second);
 }
 
 TEST(Modifiers_tests, Insert2) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_EQ(s21Map.insert(1, 2).second, stdMap.insert({1, 2}).second);
+  ASSERT_EQ(s21map.insert(1, 2).second, stdmap.insert({1, 2}).second);
 }
 
 TEST(Modifiers_tests, InsertOrAssign) {
-  s21::s21_map<int, int> s21Map;
-  std::map<int, int> stdMap;
+  s21::s21_map<int, int> s21map;
+  std::map<int, int> stdmap;
 
-  ASSERT_EQ(s21Map.insert_or_assign(1, 2).second,
-            stdMap.insert_or_assign(1, 2).second);
+  ASSERT_EQ(s21map.insert_or_assign(1, 2).second,
+            stdmap.insert_or_assign(1, 2).second);
 }
 
 TEST(Modifiers_tests, Erase) {
-  s21::s21_map<int, int> s21Map{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
-  s21Map.erase(s21Map.begin());
-  stdMap.erase(stdMap.begin());
+  s21map.erase(s21map.begin());
+  stdmap.erase(stdmap.begin());
 
-  ASSERT_EQ(s21Map.size(), stdMap.size());
+  ASSERT_EQ(s21map.size(), stdmap.size());
 }
 
 TEST(Modifiers_tests, Swap) {
-  s21::s21_map<int, int> s21Map1{{1, 2}, {3, 4}, {5, 6}};
-  s21::s21_map<int, int> s21Map2{{7, 8}, {9, 10}, {11, 12}};
-  std::map<int, int> stdMap1{{1, 2}, {3, 4}, {5, 6}};
-  std::map<int, int> stdMap2{{7, 8}, {9, 10}, {11, 12}};
+  s21::s21_map<int, int> s21map1{{1, 2}, {3, 4}, {5, 6}};
+  s21::s21_map<int, int> s21map2{{7, 8}, {9, 10}, {11, 12}};
+  std::map<int, int> stdmap1{{1, 2}, {3, 4}, {5, 6}};
+  std::map<int, int> stdmap2{{7, 8}, {9, 10}, {11, 12}};
 
-  s21Map1.swap(s21Map2);
-  stdMap1.swap(stdMap2);
+  s21map1.swap(s21map2);
+  stdmap1.swap(stdmap2);
 
-  ASSERT_EQ(s21Map1.size(), stdMap1.size());
-  ASSERT_EQ(s21Map2.size(), stdMap2.size());
+  ASSERT_EQ(s21map1.size(), stdmap1.size());
+  ASSERT_EQ(s21map2.size(), stdmap2.size());
 }
 
 TEST(Modifiers_tests, Merge) {
-  s21::s21_map<int, int> s21Map1{{1, 2}, {3, 4}};
-  s21::s21_map<int, int> s21Map2{{5, 6}, {7, 8}};
-  std::map<int, int> stdMap1{{1, 2}, {3, 4}};
-  std::map<int, int> stdMap2{{5, 6}, {7, 8}};
+  s21::s21_map<int, int> s21map1{{1, 2}, {3, 4}};
+  s21::s21_map<int, int> s21map2{{5, 6}, {7, 8}};
+  std::map<int, int> stdmap1{{1, 2}, {3, 4}};
+  std::map<int, int> stdmap2{{5, 6}, {7, 8}};
 
-  s21Map1.merge(s21Map2);
-  stdMap1.merge(stdMap2);
+  s21map1.merge(s21map2);
+  stdmap1.merge(stdmap2);
 
-  ASSERT_EQ(s21Map1.size(), stdMap1.size());
-  ASSERT_EQ(s21Map2.empty(), stdMap2.empty());
+  ASSERT_EQ(s21map1.size(), stdmap1.size());
+  ASSERT_EQ(s21map2.empty(), stdmap2.empty());
 }
 
 TEST(Lookup_tests, Contains) {
@@ -202,18 +214,18 @@ TEST(Lookup_tests, Contains) {
   ASSERT_FALSE(looking.contains(7));
 }
 
-TEST(Modifiers_tests, EmplaceTest) {
-  s21::s21_map<int, std::string> s21_map = {
+TEST(Bonus_tests, InsertMany) {
+  s21::s21_map<int, std::string> s21map = {
       {1, "one"}, {3, "three"}, {5, "five"}};
-  std::map<int, std::string> std_map = {{1, "one"}, {3, "three"}, {5, "five"}};
-  s21_map.insert_many(2, "two");
-  std_map.emplace(2, "two");
-  s21_map.insert_many(4, "four");
-  std_map.emplace(4, "four");
+  std::map<int, std::string> stdmap = {{1, "one"}, {3, "three"}, {5, "five"}};
+  s21map.insert_many(2, "two");
+  stdmap.emplace(2, "two");
+  s21map.insert_many(4, "four");
+  stdmap.emplace(4, "four");
 
-  auto i = s21_map.begin();
-  auto j = std_map.begin();
-  for (; i != s21_map.end(); i++, j++) {
+  auto i = s21map.begin();
+  auto j = stdmap.begin();
+  for (; i != s21map.end(); i++, j++) {
     ASSERT_EQ(i->first, j->first);
     ASSERT_EQ(i->second, j->second);
   }

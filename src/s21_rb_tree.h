@@ -42,9 +42,20 @@ class Tree {
     }
     return *this;
   }
-
-  size_t getSize() { return size_; }
-  node<K, V> *getNode() { return node_; }
+  Tree(const Tree<K, V> &other) {
+    node_ = copyTree(other.node_);
+    size_ = other.size_;
+  }
+  Tree &operator=(const Tree<K, V> &other) {
+    if (this != &other) {
+      clearTree(node_);
+      node_ = copyTree(other.node_);
+      size_ = other.size_;
+    }
+    return *this;
+  }
+  size_t getSize() const { return size_; }
+  node<K, V> *getNode() const { return node_; }
   void insert_value(bool is_multiset, const K &key, const V &value = 0) {
     if (node_ == nullptr) {
       node_ = new node<K, V>(key, value, kBlack);
@@ -71,7 +82,6 @@ class Tree {
     if (node_ == nullptr) {
       return nullptr;
     }
-
     node<K, V> *current = node_;
     while (current->left != nullptr) {
       current = current->left;
@@ -89,6 +99,26 @@ class Tree {
  private:
   node<K, V> *node_;
   size_t size_;
+  node<K, V> *copyTree(const node<K, V> *source) {
+    if (!source) return nullptr;
+    node<K, V> *newNode =
+        new node<K, V>(source->key_value.first, source->key_value.second);
+    newNode->color = source->color;
+    newNode->left = copyTree(source->left);
+    newNode->right = copyTree(source->right);
+
+    if (newNode->left) newNode->left->parent = newNode;
+    if (newNode->right) newNode->right->parent = newNode;
+
+    return newNode;
+  }
+  void clearTree(node<K, V> *root) {
+    if (!root) return;
+
+    clearTree(root->left);
+    clearTree(root->right);
+    delete root;
+  }
   void left_rotate(node<K, V> *root) {
     node<K, V> *new_root = root->right;
     root->right = new_root->left;

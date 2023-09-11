@@ -18,27 +18,33 @@ class s21_map {
   using size_type = size_t;
   using iterator = s21_iterator<Key, T>;
   // Map Member functions ==================================
-  explicit s21_map() : rb_tree(){};
+  s21_map() : rb_tree(){};
   s21_map(std::initializer_list<value_type> const &items) {
     for (const auto &item : items) {
       rb_tree.insert_value(0, item.first, item.second);
     }
   }
-  s21_map(s21_map &m) {  // const
-    copy(m.rb_tree.getNode());
+  s21_map(const s21_map &m) { copy(m.rb_tree.getNode()); }
+  s21_map &operator=(const s21_map &m) {
+    if (this != &m) {
+      clear();
+      copy(m.rb_tree.getNode());
+    }
+    return *this;
   }
   s21_map(s21_map &&m) {
     rb_tree = std::move(m.rb_tree);
     m.clear();
   }
-  ~s21_map() { clear(); }
   s21_map &operator=(s21_map &&m) {
     if (this != &m) {
-      this->clear();
-      this->rb_tree = std::move(m.rb_tree);
+      clear();
+      rb_tree = std::move(m.rb_tree);
+      m.clear();
     }
     return *this;
   }
+  ~s21_map() { clear(); }
   // ========================================================
 
   // Map Element access =====================================
@@ -62,30 +68,30 @@ class s21_map {
   // ========================================================
 
   // Map Iterators ==========================================
-  iterator begin() {
+  iterator begin() noexcept {
     if (empty())
       return iterator(nullptr, &rb_tree);
     else
       return iterator(rb_tree.get_minimum(), &rb_tree);
   }
-
-  iterator end() { return iterator(nullptr, &rb_tree); }
+  iterator end() noexcept { return iterator(nullptr, &rb_tree); }
   // ========================================================
 
   // Map Capacity ===========================================
-  bool empty() { return rb_tree.getSize() == 0; }
-  size_type size() { return this->rb_tree.getSize(); }
-  size_type max_size() {
+  bool empty() const noexcept { return rb_tree.getSize() == 0; }
+  size_type size() const noexcept { return rb_tree.getSize(); }
+  size_type max_size() const noexcept {
     return std::numeric_limits<size_t>::max() / sizeof(size_t) / 10;
   }
   // ========================================================
 
   //  Map Modifiers =========================================
-  void clear() {
+  void clear() noexcept {
     clear_node(rb_tree.getNode());
     rb_tree = Tree<Key, T>();
   }
-  std::pair<iterator, bool> insert(const value_type &value) {
+  std::pair<iterator, bool> insert(
+      const value_type &value) {  // мб добавить другие виды инсертов
     node<Key, T> *node_found = rb_tree.find_value(value.first);
     if (node_found) {
       return std::make_pair(iterator(node_found, &rb_tree), false);
@@ -116,12 +122,23 @@ class s21_map {
       return std::make_pair(iterator(new_node, &rb_tree), true);
     }
   }
-  void erase(iterator pos) {
+  std::pair<iterator, bool> insert_or_assign(Key &key, T &obj) {
+    node<Key, T> *node_found = rb_tree.find_value(key);
+    if (node_found) {
+      node_found->key_value.second = obj;
+      return std::make_pair(iterator(node_found, &rb_tree), false);
+    } else {
+      rb_tree.insert_value(0, key, obj);
+      node<Key, T> *new_node = rb_tree.find_value(key);
+      return std::make_pair(iterator(new_node, &rb_tree), true);
+    }
+  }
+  void erase(iterator pos) noexcept {
     if (pos != end()) {
       rb_tree.remove_value(pos->first);
     }
   }
-  void swap(s21_map &other) { std::swap(rb_tree, other.rb_tree); }
+  void swap(s21_map &other) noexcept { std::swap(rb_tree, other.rb_tree); }
   void merge(s21_map &other) {
     for (auto it = other.begin(); it != other.end(); it++) {
       rb_tree.insert_value(0, it->first, it->second);
@@ -131,10 +148,12 @@ class s21_map {
   // ========================================================
 
   // Map Lookup =============================================
-  bool contains(const Key &key) { return rb_tree.find_value(key) != nullptr; }
+  bool contains(const Key &key) noexcept {
+    return rb_tree.find_value(key) != nullptr;
+  }
   // ========================================================
 
-  // Emplace  ===============================================
+  // Insert Many  ===============================================
   template <class... Args>
   std::pair<iterator, bool> insert_many(Args &&...args) {
     std::pair<Key, T> value(std::forward<Args>(args)...);
@@ -152,13 +171,12 @@ class s21_map {
   Tree<Key, T> rb_tree;
   void copy(node<Key, T> *n) {
     if (n) {
-      if (!rb_tree.find_value(n->key_value.first)) {
-        rb_tree.insert_value(0, n->key_value.first, n->key_value.second);
-        copy(n->left);
-        copy(n->right);
-      }
+      rb_tree.insert_value(0, n->key_value.first, n->key_value.second);
+      copy(n->left);
+      copy(n->right);
     }
   }
+
   void clear_node(node<Key, T> *root) {
     if (root == nullptr) {
       return;
