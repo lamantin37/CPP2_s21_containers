@@ -126,17 +126,12 @@ class s21_vector {
    private:
     const T *ptr_;
   };
-  const_iterator cbegin() const { return const_iterator(array_); }
-  const_iterator cend() const { return const_iterator(array_ + size_); }
-  iterator begin() { return iterator(array_); }
-  iterator end() { return iterator(array_ + size_); }
-  iterator data() { return array_; }
-  //	-----------------------------------------------------------
-  //	конструкторы и деструкторы---------------------------------
-  s21_vector(size_type s) : array_(new T[s]), size_(s), capacity_(s) {
+
+  // Vector Member functions ================================
+  s21_vector() : array_(nullptr), size_(0), capacity_(0){};
+  explicit s21_vector(size_type s) : array_(new T[s]), size_(s), capacity_(s) {
     // std::cout << "Constructor" << std::endl;
   }
-  s21_vector() : array_(nullptr), size_(0), capacity_(0){};
   s21_vector(std::initializer_list<value_type> const &items)
       : array_(new T[items.size()]),
         size_(items.size()),
@@ -147,11 +142,9 @@ class s21_vector {
       : array_(new T[v.capacity_]), size_(v.size_), capacity_(v.capacity_) {
     std::copy(v.array_, v.array_ + v.size_, array_);
   }
-
   s21_vector &operator=(const s21_vector &other) {
     if (this != &other) {
       delete[] array_;
-
       size_ = other.size_;
       capacity_ = other.capacity_;
       array_ = new T[other.capacity_];
@@ -165,22 +158,18 @@ class s21_vector {
     v.size_ = 0;
     v.capacity_ = 0;
   }
-
   s21_vector &operator=(s21_vector &&other) {
     if (this != &other) {
       delete[] array_;
-
       size_ = other.size_;
       capacity_ = other.capacity_;
       array_ = other.array_;
-
       other.array_ = nullptr;
       other.size_ = 0;
       other.capacity_ = 0;
     }
     return *this;
   }
-
   ~s21_vector() {
     for (size_t i = 0; i < size_; ++i) {
       array_[i].~T();
@@ -188,8 +177,8 @@ class s21_vector {
     delete[] reinterpret_cast<int8_t *>(array_);
     // std::cout << "Destructor" << std::endl;
   }
-  //	-----------------------------------------------------------
-  //	доступ к элементам класса
+  // ========================================================
+  // Vector Element access ==================================
   reference at(size_type pos) {
     if (pos >= size_) {
       throw std::out_of_range("Index is out of range.");
@@ -203,13 +192,25 @@ class s21_vector {
     return array_[pos];
   }
   reference operator[](size_t pos) { return array_[pos]; }
-  const_reference front() { return array_[0]; }
-  const_reference back() { return array_[size_ - 1]; }
-  //	-----------------------------------------------------------
-  //	итерирование по элементам класса
-
-  //	-----------------------------------------------------------
-  //	методы для доступа к информации о наполнении контейнера
+  const_reference operator[](size_t pos) const { return array_[pos]; }
+  reference front() { return array_[0]; }
+  const_reference front() const { return array_[0]; }
+  reference back() { return array_[size_ - 1]; }
+  const_reference back() const { return array_[size_ - 1]; }
+  T *data() { return array_; }
+  // ========================================================
+  // Vector Iterators =======================================
+  const_iterator cbegin() const { return const_iterator(array_); }
+  const_iterator cend() const { return const_iterator(array_ + size_); }
+  iterator begin() { return iterator(array_); }
+  iterator end() { return iterator(array_ + size_); }
+  // ========================================================
+  // Vector Capacity ========================================
+  bool empty() const noexcept { return (size_ == 0); }
+  size_type size() const noexcept { return size_; };
+  size_type max_size() const noexcept {
+    return std::numeric_limits<size_t>::max() / sizeof(size_t);
+  }
   void reserve(size_type new_cap) {
     if (new_cap <= capacity_) return;
     T *new_array = reinterpret_cast<T *>(new int8_t[new_cap * sizeof(T)]);
@@ -223,11 +224,7 @@ class s21_vector {
     array_ = new_array;
     capacity_ = new_cap;
   }
-  size_type max_size() {
-    return std::numeric_limits<size_t>::max() / sizeof(size_t);
-  }
-  size_type capacity() { return capacity_; };
-  size_type size() { return size_; };
+  size_type capacity() const noexcept { return capacity_; };
   void resize(size_t new_size) {
     if (new_size > capacity_) {
       throw std::length_error("New size exceeds capacity in resize");
@@ -252,31 +249,32 @@ class s21_vector {
       capacity_ = size_;
     }
   }
-  bool empty() { return (size_ == 0); }
-  //	-----------------------------------------------------------
-  //	 методы для изменения контейнера
-  void push_back(const_reference value) {
-    if (size_ >= capacity_) {
-      reserve(capacity_ == 0 ? 1 : capacity_ * 2);
-    }
-    array_[size_] = value;
-    ++size_;
-  }
-  void pop_back() {
-    if (size_ > 0) {
-      --size_;
-      (array_ + size_)->~T();
-    }
-  }
-  void clear() {
+  // ========================================================
+  // Vector Modifiers =======================================
+  void clear() noexcept {
     for (size_t i = 0; i < size_; ++i) {
       (array_ + i)->~T();
     }
     size_ = 0;
   }
+  iterator insert(iterator pos, const_reference value) {
+    if (pos < begin() || pos > end()) {
+      throw std::out_of_range(
+          "Iterator is out of range.");  // возможно такого нет
+    }
+    size_t index = pos - begin();
+    if (size_ >= capacity_) {
+      reserve(capacity_ == 0 ? 1 : capacity_ * 2);
+    }
+    std::move_backward(begin() + index, end(), end() + 1);
+    array_[index] = value;
+    size_++;
+    return begin() + index;
+  }
   iterator erase(iterator pos) {
     if (pos < begin() || pos >= end()) {
-      throw std::out_of_range("Iterator is out of range.");
+      throw std::out_of_range(
+          "Iterator is out of range.");  // возможно такого нет
     }
     std::move(pos + 1, end(), pos);
     size_--;
@@ -290,29 +288,29 @@ class s21_vector {
       resize(size() - (last - first));
       return it;
     }
-    throw std::out_of_range("Invalid iterator range for erase!");
+    throw std::out_of_range(
+        "Invalid iterator range for erase!");  // возможно такого нет
   }
-  void swap(s21_vector &other) {
+  void push_back(const_reference value) {
+    if (size_ >= capacity_) {
+      reserve(capacity_ == 0 ? 1 : capacity_ * 2);
+    }
+    array_[size_] = value;
+    ++size_;
+  }
+  void pop_back() noexcept {
+    if (size_ > 0) {
+      --size_;
+      (array_ + size_)->~T();
+    }
+  }
+  void swap(s21_vector &other) noexcept {
     std::swap(size_, other.size_);
     std::swap(capacity_, other.capacity_);
     std::swap(array_, other.array_);
   }
-  iterator insert(iterator pos, const_reference value) {
-    if (pos < begin() || pos > end()) {
-      throw std::out_of_range("Iterator is out of range.");
-    }
-    size_t index = pos - begin();
-    if (size_ >= capacity_) {
-      reserve(capacity_ == 0 ? 1 : capacity_ * 2);
-    }
-    std::move_backward(begin() + index, end(), end() + 1);
-    array_[index] = value;
-    size_++;
-    return begin() + index;
-  }
-
-  //	-----------------------------------------------------------
-  T *getArray() { return array_; };
+  // ========================================================
+  // Insert Many ============================================
   template <class... Args>
   iterator insert_many(const_iterator pos, Args &&...args) {
     if (pos < cbegin() || pos > cend()) {
@@ -331,7 +329,7 @@ class s21_vector {
   void emplace_back(Args &&...args) {
     insert_many(cend(), std::forward<Args>(args)...);
   }
-
+  // ========================================================
  private:
   T *array_;
   size_t size_;
