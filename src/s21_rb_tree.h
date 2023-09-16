@@ -209,65 +209,66 @@ class Tree {
     }
     node_->color = kBlack;
   }
+
   void removeBalancing(node<K, V> *tested_node) {
-    if (!tested_node->parent) {
-      if (tested_node->left) {
-        node_ = tested_node->left;
-      } else if (tested_node->right) {
-        node_ = tested_node->right;
-      } else {
-        node_ = nullptr;
-      }
-      return;
-    }
-    if (tested_node->color == kBlack &&
-        (tested_node->left == nullptr || tested_node->left->color == kBlack) &&
-        (tested_node->right == nullptr ||
-         tested_node->right->color == kBlack)) {
-      makeRed(tested_node);
-      if (tested_node->parent) {
-        removeBalancing(tested_node->parent);
-      } else if (isSiblingRed(tested_node)) {  // брат красный
-        node<K, V> *par =
-            tested_node->parent;  // брат становится родителем отца
-        node<K, V> *sib = getSibling(tested_node);
-        makeRed(par);    // красим отца в красный
-        makeBlack(sib);  // а брата в чёрный
-        if (tested_node == par->left) {
-          leftRotate(par);
-        } else {
-          rightRotate(par);
+    while (tested_node != node_ && (tested_node != nullptr ||
+                                    tested_node->color == kBlack)) {  // всё ок
+      if (tested_node == tested_node->parent->left) {  // всё ок
+        node<K, V> *brother = getSibling(tested_node);
+        if (brother == nullptr) {
+          continue;
         }
-        removeBalancing(tested_node);
-      } else if (blackSiblingRedChild(
-                     tested_node)) {  // черный брат с красным ребёнком
-        node<K, V> *par = tested_node->parent;
-        node<K, V> *sib = getSibling(tested_node);
-        if (isBlack(sib->right)) {  // чёрный правый ребенок
-          makeBlack(sib->left);  // перекрашиваем красного правого ребенка
-                                 // брата в чёрный
-          makeRed(sib);  // а брата в чёрный
-          rightRotate(sib);
-        } else {  // красный правый ребёнок
-          sib->color = par->color;  // перекрашиваем брата в цвет отца
-          makeBlack(par);  // перекрашиваем отца в чёрный
-          makeBlack(sib->right);  // и ребёнка тоже в чёрный
-          if (tested_node == par->left) {
-            leftRotate(par);
-          } else {
-            rightRotate(par);
+        if (brother->color == kRed) {
+          // brother->color == kBlack;
+          tested_node->parent->color = kRed;
+          leftRotate(tested_node->parent);
+        }
+        if ((brother->left == nullptr || brother->left->color == kBlack) &&
+            (brother->right == nullptr || brother->right->color == kBlack)) {
+          brother->color = kRed;
+        } else {
+          if (brother->right == nullptr || brother->right->color == kBlack) {
+            brother->left->color = kBlack;
+            brother->color = kRed;
+            rightRotate(brother);
           }
+          brother->color = tested_node->parent->color;
+          tested_node->parent->color = kBlack;
+          brother->right->color = kBlack;
+          leftRotate(tested_node->parent);
+          tested_node = node_;
         }
-      } else {  // оба рёбнка брата чёрные
-        makeRed(getSibling(tested_node));
-        if (!isRed(tested_node->parent)) {
-          removeBalancing(tested_node->parent);
+      } else {
+        node<K, V> *brother = getSibling(tested_node);
+        if (brother == nullptr) {
+          continue;
+        }
+        if (brother->color == kRed) {
+          // brother->color == kBlack;
+          tested_node->parent->color = kRed;
+          rightRotate(tested_node->parent);
+        }
+        if ((brother->left == nullptr || brother->left->color == kBlack) &&
+            (brother->right == nullptr || brother->right->color == kBlack)) {
+          brother->color = kRed;
         } else {
-          makeBlack(tested_node->parent);
+          if (brother->left == nullptr || brother->left->color == kBlack) {
+            brother->right->color = kBlack;
+            brother->color = kRed;
+            leftRotate(brother);
+          }
+          brother->color = tested_node->parent->color;
+          tested_node->parent->color = kBlack;
+          brother->left->color = kBlack;
+          rightRotate(tested_node->parent);
+          tested_node = node_;
         }
       }
     }
+    tested_node->color = kBlack;
+    node_->color = kBlack;
   }
+
   node<K, V> *getNext(node<K, V> *current) {
     node<K, V> *next_node = current;
     while (next_node->left) {
@@ -278,42 +279,60 @@ class Tree {
   void removeNode(node<K, V> *node_to_remove) {
     if (!node_to_remove->left &&
         !node_to_remove->right) {  // у вершины нет детей
-      if (node_to_remove == node_to_remove->parent->left) {
-        node_to_remove->parent->left = nullptr;
+      // removeBalancing(node_to_remove);
+      if (node_to_remove == node_) {
+        node_ = nullptr;
       } else {
-        node_to_remove->parent->right = nullptr;
+        if (node_to_remove == node_to_remove->parent->left)
+          node_to_remove->parent->left = nullptr;
+        else
+          node_to_remove->parent->right = nullptr;
       }
-      removeBalancing(node_to_remove);
       delete node_to_remove;
       return;
-    } else if (node_to_remove->left &&
-               node_to_remove->right) {  // у вершины есть оба ребёнка
-      node<K, V> *leftmost_node = getNext(node_to_remove->right);
-      node_to_remove->key_value.first = leftmost_node->key_value.first;
-      removeNode(leftmost_node);
-      return;
-    } else if (node_to_remove->left ||
-               node_to_remove->right) {  // у вершины один ребёнок
-      if (node_to_remove->left) {
-        if ((node_to_remove == node_to_remove->parent->left)) {
-          node_to_remove->parent->left = node_to_remove->left;
-          node_to_remove->left->parent = node_to_remove->parent;
+    }
+    node<K, V> *next_node = nullptr;
+    if (node_to_remove->left &&
+        node_to_remove->right) {  // у вершины есть оба ребёнка
+      next_node = getNext(node_to_remove->right);
+      if (next_node->right) {
+        next_node->right->parent = next_node->parent;
+      }
+      if (next_node != node_to_remove->right) {
+        if (next_node == next_node->parent->left) {
+          next_node->parent->left = next_node->right;
         } else {
-          node_to_remove->parent->right = node_to_remove->left;
-          node_to_remove->left->parent = node_to_remove->parent;
+          next_node->parent->right = next_node->right;
         }
-      } else if (node_to_remove->right) {
-        if ((node_to_remove == node_to_remove->parent->left)) {
-          node_to_remove->parent->left = node_to_remove->right;
-          node_to_remove->right->parent = node_to_remove->parent;
-        } else {
-          node_to_remove->parent->right = node_to_remove->right;
-          node_to_remove->right->parent = node_to_remove->parent;
+        if (next_node->right) {
+          next_node->right->parent = next_node->parent;
+        }
+      } else {
+        node_to_remove->right = next_node->right;
+        if (next_node->right) {
+          next_node->right->parent = node_to_remove;
         }
       }
-      removeBalancing(node_to_remove);
+      delete next_node;
+    } else {  // у вершины один ребёнок
+      next_node =
+          (node_to_remove->left) ? node_to_remove->left : node_to_remove->right;
+      if (node_to_remove == node_to_remove->parent->left) {
+        node_to_remove->parent->left = next_node;
+      } else {
+        node_to_remove->parent->right = next_node;
+      }
+      next_node->parent = node_to_remove->parent;
+    }
+    if (next_node != node_to_remove) {
+      node_to_remove->color = next_node->color;
+      node_to_remove->key_value.first = next_node->key_value.first;
+      node_to_remove->key_value.second = next_node->key_value.second;
       delete node_to_remove;
       return;
+    }
+    if (next_node->color == kBlack) {
+      removeBalancing(node_to_remove);
     }
   }
 

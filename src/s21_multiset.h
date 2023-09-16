@@ -78,7 +78,7 @@ class s21_multiset {
       iterator pos) noexcept {  // обработать удаление последнего элемента
     if (pos != end()) {
       rb_tree_.removeValue(*pos);
-      pos++;
+      // pos++;
     }
   }
   void swap(s21_multiset &other) noexcept {
@@ -145,6 +145,7 @@ class s21_multiset {
     node<value_type> *new_node = rb_tree_.findValue(value);
     return std::make_pair(iterator(new_node, &rb_tree_), true);
   }
+  Tree<value_type, int> getTree() { return rb_tree_; }
   // ========================================================
  private:
   Tree<value_type, int> rb_tree_;

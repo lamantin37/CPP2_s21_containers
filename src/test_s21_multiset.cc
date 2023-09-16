@@ -131,17 +131,15 @@ TEST(Modifiers_tests, TestInsert) {
   ASSERT_EQ(my_multiset.contains(5), std_multiset.count(5) > 0);
 }
 
-// TEST(MultisetTest, Erase) {
-//   s21::s21_multiset<int> mset = {1, 2, 3, 4};
-//   std::multiset<int> std_mset = {1, 2, 3, 4};
+TEST(MultisetTest, Erase) {
+  s21::s21_multiset<int> mset = {1, 2, 3, 4};
+  std::multiset<int> std_mset = {1, 2, 3, 4};
 
-//   mset.erase((mset.begin()));
-//   std_mset.erase((std_mset.begin()));
-//   std::cout << *(mset.begin()) << std::endl;
-//   std::cout << *(std_mset.begin()) << std::endl;
-//   // EXPECT_EQ(mset.size(), std_mset.size());
-//   // EXPECT_EQ(*mset.begin(), *std_mset.begin());
-// }
+  mset.erase((mset.begin()));
+  std_mset.erase((std_mset.begin()));
+  EXPECT_EQ(mset.size(), std_mset.size());
+  EXPECT_EQ(*mset.begin(), *std_mset.begin());
+}
 
 TEST(Modifiers_tests, Swap) {
   s21::s21_multiset<int> mset1 = {1, 2, 3, 4};
