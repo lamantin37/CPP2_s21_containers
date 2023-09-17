@@ -85,7 +85,7 @@ class s21_multiset {
     std::swap(rb_tree_, other.rb_tree_);
   }
   void merge(s21_multiset &other) {
-    for (iterator it = other.begin(); it != other.end(); it++) {
+    for (iterator it = other.begin(); it != other.end(); ++it) {
       rb_tree_.insertValue(1, *it);  //
     }
     other.clear();
@@ -104,7 +104,7 @@ class s21_multiset {
   }
   size_type count(const Key &key) {
     size_type counter = 0;
-    for (iterator it = begin(); it != end(); it++) {
+    for (iterator it = begin(); it != end(); ++it) {
       if ((*it) == key) counter++;
     }
     return counter;
@@ -113,7 +113,7 @@ class s21_multiset {
     iterator it1(rb_tree_.findValue(key), &rb_tree_);
     iterator it2 = begin();
     std::pair<iterator, iterator> it_pair;
-    for (; it2 != end() && (*it2) <= key; it2++) {
+    for (; it2 != end() && (*it2) <= key; ++it2) {
       if ((*it2) == key) {
         it1 = it2;
       }
@@ -122,14 +122,14 @@ class s21_multiset {
     return it_pair;
   }
   iterator lower_bound(const Key &key) {
-    for (iterator it = begin(); it != end(); it++) {
+    for (iterator it = begin(); it != end(); ++it) {
       if ((*it) >= key) return it;
     }
     iterator def_iteratorl;
     return def_iteratorl;
   }
   iterator upper_bound(const Key &key) {
-    for (iterator it = begin(); it != end(); it++) {
+    for (iterator it = begin(); it != end(); ++it) {
       if ((*it) > key) return it;
     }
     iterator def_iteratorl;

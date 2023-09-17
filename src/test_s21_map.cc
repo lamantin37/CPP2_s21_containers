@@ -20,7 +20,7 @@ TEST(Member_functions_tests, InitializerListConstructor) {
 
   ASSERT_EQ(s21map.size(), stdmap.size());
 
-  for (auto it = s21map.begin(); it != s21map.end(); it++) {
+  for (auto it = s21map.begin(); it != s21map.end(); ++it) {
     auto pair = it;
     ASSERT_EQ(pair->second, stdmap[pair->first]);
   }
@@ -32,7 +32,7 @@ TEST(Member_functions_tests, CopyConstructor) {
 
   ASSERT_EQ(first_map.size(), second_map.size());
 
-  for (auto it = second_map.begin(); it != second_map.end(); it++) {
+  for (auto it = second_map.begin(); it != second_map.end(); ++it) {
     auto pair = it;
     ASSERT_EQ(pair->second, first_map[pair->first]);
   }
@@ -140,9 +140,9 @@ TEST(Iterators_tests, End) {
   std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
 
   auto s21MapEnd = s21map.end();
-  s21MapEnd--;
+  --s21MapEnd;
   auto stdMapEnd = stdmap.end();
-  stdMapEnd--;
+  --stdMapEnd;
 
   ASSERT_EQ(s21MapEnd->first, stdMapEnd->first);
   ASSERT_EQ(s21MapEnd->second, stdMapEnd->second);
@@ -272,7 +272,7 @@ TEST(Bonus_tests, InsertMany) {
 
   auto i = s21map.begin();
   auto j = stdmap.begin();
-  for (; i != s21map.end(); i++, j++) {
+  for (; i != s21map.end(); ++i, ++j) {
     ASSERT_EQ(i->first, j->first);
     ASSERT_EQ(i->second, j->second);
   }

@@ -19,6 +19,23 @@ class s21_iterator {
   s21_iterator(node<Key, T> *ptr, Tree<Key, T> *tree)
       : ptr_(ptr), tree_(tree) {}
   s21_iterator() : ptr_(nullptr) {}
+  s21_iterator &operator++() {
+    if (ptr_->right) {
+      ptr_ = ptr_->right;
+      while (ptr_->left) {
+        ptr_ = ptr_->left;
+      }
+    } else {
+      node<Key, T> *parent = ptr_->parent;
+      while (parent && ptr_ == parent->right) {
+        ptr_ = parent;
+        parent = parent->parent;
+      }
+      ptr_ = parent;
+    }
+    return *this;
+  }
+
   s21_iterator &operator++(int) {
     if (ptr_->right) {
       ptr_ = ptr_->right;
@@ -32,6 +49,31 @@ class s21_iterator {
         parent = parent->parent;
       }
       ptr_ = parent;
+    }
+    return *this;
+  }
+
+  s21_iterator &operator--() {
+    if (!ptr_) {
+      ptr_ = tree_->getMaximum();
+    } else {
+      if (ptr_->left) {
+        ptr_ = ptr_->left;
+        while (ptr_->right) {
+          ptr_ = ptr_->right;
+        }
+      } else {
+        node<Key, T> *parent = ptr_->parent;
+        while (parent && ptr_ == parent->left) {
+          ptr_ = parent;
+          parent = parent->parent;
+        }
+        if (parent == nullptr) {
+          ptr_ = nullptr;
+        } else {
+          ptr_ = parent;
+        }
+      }
     }
     return *this;
   }
@@ -60,6 +102,7 @@ class s21_iterator {
     }
     return *this;
   }
+
   value_type &operator*() const {
     if (ptr_ != nullptr) {
       if constexpr (std::is_same<value_type, Key>::value) {

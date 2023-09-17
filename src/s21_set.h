@@ -87,7 +87,7 @@ class s21_set {
   }
   void swap(s21_set &other) noexcept { std::swap(rb_tree_, other.rb_tree_); }
   void merge(s21_set &other) {
-    for (iterator it = other.begin(); it != other.end(); it++) {
+    for (iterator it = other.begin(); it != other.end(); ++it) {
       rb_tree_.insertValue(0, *it);
     }
     other.clear();

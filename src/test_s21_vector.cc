@@ -267,7 +267,7 @@ TEST(Modifiers_tests, Emplace1) {
 
   auto i = s21_vec.begin();
   auto j = std_vec.begin();
-  for (; i != s21_vec.end(); i++, j++) {
+  for (; i != s21_vec.end(); ++i, ++j) {
     EXPECT_EQ(*i, *j);
   }
 }
@@ -285,7 +285,7 @@ TEST(Modifiers_tests, Emplace2) {
 
   auto i = s21_vec.begin();
   auto j = std_vec.begin();
-  for (; i != s21_vec.end(); i++, j++) {
+  for (; i != s21_vec.end(); ++i, ++j) {
     EXPECT_EQ(*i, *j);
   }
 }
@@ -299,7 +299,7 @@ TEST(Modifiers_tests, EmplaceBack) {
 
   auto i = s21_vec.begin();
   auto j = std_vec.begin();
-  for (; i != s21_vec.end(); i++, j++) {
+  for (; i != s21_vec.end(); ++i, ++j) {
     EXPECT_EQ(*i, *j);
   }
 }

@@ -29,7 +29,7 @@ TEST(Member_functions_tests, CopyConstructor) {
 
   auto i = original.begin();
   auto j = copied.begin();
-  for (; i != original.end(); i++, j++) {
+  for (; i != original.end(); ++i, ++j) {
     ASSERT_EQ(*i, *j);
   }
 }
@@ -43,7 +43,7 @@ TEST(Member_functions_tests, CopyAssignmentOperator) {
 
   auto i = original.begin();
   auto j = copied.begin();
-  for (; i != original.end(); i++, j++) {
+  for (; i != original.end(); ++i, ++j) {
     ASSERT_EQ(*i, *j);
   }
 }
@@ -212,7 +212,7 @@ TEST(Bonus_tests, InsertManyTest) {
 
   auto i = custom_set.begin();
   auto j = std_set.begin();
-  for (; i != custom_set.end(); i++, j++) {
+  for (; i != custom_set.end(); ++i, ++j) {
     ASSERT_EQ(*i, *j);
   }
 }

@@ -15,7 +15,7 @@ TEST(Member_functions_tests, InitializerListConstructor) {
   std::multiset<int> std_mset = {1, 2, 3, 4};
   EXPECT_EQ(mset.size(), std_mset.size());
   auto std_it = std_mset.begin();
-  for (auto it = mset.begin(); it != mset.end(); it++, std_it++) {
+  for (auto it = mset.begin(); it != mset.end(); ++it, std_it++) {
     EXPECT_EQ(*it, *std_it);
   }
 }
@@ -27,7 +27,7 @@ TEST(Member_functions_tests, CopyConstructor) {
   EXPECT_EQ(mset1.size(), mset2.size());
 
   auto mset1_it = mset1.begin();
-  for (auto it = mset2.begin(); it != mset2.end(); it++, mset1_it++) {
+  for (auto it = mset2.begin(); it != mset2.end(); ++it, ++mset1_it) {
     EXPECT_EQ(*it, *mset1_it);
   }
 }
@@ -41,7 +41,7 @@ TEST(Member_functions_tests, CopyAssignmentConstructor) {
 
   auto i = mset1.begin();
   auto j = mset2.begin();
-  for (; i != mset1.end(); i++, j++) {
+  for (; i != mset1.end(); ++i, ++j) {
     ASSERT_EQ(*i, *j);
   }
 }
@@ -140,7 +140,7 @@ TEST(Modifiers_tests, TestInsert2) {
   }
   auto it1 = my_multiset.begin();
   auto it2 = std_multiset.begin();
-  for (; it1 != my_multiset.end(), it1 != my_multiset.end(); it1++, it2++) {
+  for (; it1 != my_multiset.end(), it1 != my_multiset.end(); ++it1, ++it2) {
     ASSERT_EQ(*it1, (*it2));
   }
   ASSERT_EQ(my_multiset.size(), std_multiset.size());
@@ -180,12 +180,12 @@ TEST(Modifiers_tests, Swap) {
 
   auto it1 = mset1.begin();
   auto it2 = std_mset1.begin();
-  for (; it1 != mset1.end(), it2 != std_mset1.end(); it1++, it2++) {
+  for (; it1 != mset1.end(), it2 != std_mset1.end(); ++it1, ++it2) {
     EXPECT_EQ(*it1, (*it2));
   }
   it1 = mset2.begin();
   it2 = std_mset2.begin();
-  for (; it1 != mset2.end(), it2 != std_mset2.end(); it1++, it2++) {
+  for (; it1 != mset2.end(), it2 != std_mset2.end(); ++it1, ++it2) {
     ASSERT_EQ(*it1, (*it2));
   }
 }
@@ -201,7 +201,7 @@ TEST(Modifiers_tests, Merge) {
 
   auto it1 = mset1.begin();
   auto it2 = std_mset1.begin();
-  for (; it1 != mset1.end(), it2 != std_mset1.end(); it1++, it2++) {
+  for (; it1 != mset1.end(), it2 != std_mset1.end(); ++it1, ++it2) {
     ASSERT_EQ(*it1, (*it2));
   }
   ASSERT_EQ(mset1.size(), std_mset1.size());
@@ -282,7 +282,7 @@ TEST(Bonus_tests, TestInsertMany) {
 
   auto i = my_multiset.begin();
   auto j = std_multiset.begin();
-  for (; i != my_multiset.end(); i++, j++) {
+  for (; i != my_multiset.end(); ++i, ++j) {
     ASSERT_EQ(*i, *j);
   }
 }

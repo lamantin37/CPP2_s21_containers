@@ -140,7 +140,7 @@ class s21_map {
   }
   void swap(s21_map &other) noexcept { std::swap(rb_tree_, other.rb_tree_); }
   void merge(s21_map &other) {
-    for (auto it = other.begin(); it != other.end(); it++) {
+    for (auto it = other.begin(); it != other.end(); ++it) {
       rb_tree_.insertValue(0, it->first, it->second);
     }
     other.clear();
