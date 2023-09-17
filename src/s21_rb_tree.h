@@ -283,10 +283,12 @@ class Tree {
       if (node_to_remove == node_) {
         node_ = nullptr;
       } else {
-        if (node_to_remove == node_to_remove->parent->left)
-          node_to_remove->parent->left = nullptr;
-        else
-          node_to_remove->parent->right = nullptr;
+        if (node_to_remove->parent) {
+          if (node_to_remove == node_to_remove->parent->left)
+            node_to_remove->parent->left = nullptr;
+          else
+            node_to_remove->parent->right = nullptr;
+        }
       }
       delete node_to_remove;
       return;
@@ -317,12 +319,17 @@ class Tree {
     } else {  // у вершины один ребёнок
       next_node =
           (node_to_remove->left) ? node_to_remove->left : node_to_remove->right;
-      if (node_to_remove == node_to_remove->parent->left) {
-        node_to_remove->parent->left = next_node;
+      if (node_to_remove->parent) {
+        if (node_to_remove == node_to_remove->parent->left) {
+          node_to_remove->parent->left = next_node;
+        } else {
+          node_to_remove->parent->right = next_node;
+        }
+        next_node->parent = node_to_remove->parent;
       } else {
-        node_to_remove->parent->right = next_node;
+        node_ = next_node;
+        next_node->parent = nullptr;
       }
-      next_node->parent = node_to_remove->parent;
     }
     if (next_node != node_to_remove) {
       node_to_remove->color = next_node->color;

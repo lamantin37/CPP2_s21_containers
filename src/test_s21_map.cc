@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <map>
+#include <vector>
 
 #include "s21_map.h"
+#include "s21_vector.h"
 
 TEST(Member_functions_tests, DefaultConstructor) {
   s21::s21_map<int, int> s21map;
@@ -87,6 +89,16 @@ TEST(Element_access_tests, OperatorBracket) {
   ASSERT_EQ(s21map[1], stdmap[1]);
 }
 
+TEST(Element_access_tests, OperatorBracket2) {
+  s21::s21_map<int, std::vector<std::string>> s21map;
+  std::map<int, std::vector<std::string>> stdmap;
+
+  s21map[1] = {"one", "uno", "eins"};
+  stdmap[1] = {"one", "uno", "eins"};
+
+  ASSERT_EQ(s21map[1], stdmap[1]);
+}
+
 TEST(Element_access_tests, At) {
   s21::s21_map<int, int> s21map;
   std::map<int, int> stdmap;
@@ -97,9 +109,27 @@ TEST(Element_access_tests, At) {
   ASSERT_EQ(s21map.at(1), stdmap.at(1));
 }
 
+TEST(Element_access_tests, At2) {
+  s21::s21_map<int, std::pair<std::string, double>> s21map;
+  std::map<int, std::pair<std::string, double>> stdmap;
+
+  s21map.insert({1, {"apple", 0.5}});
+  stdmap.insert({1, {"apple", 0.5}});
+
+  ASSERT_EQ(s21map.at(1), stdmap.at(1));
+}
+
 TEST(Iterators_tests, Begin) {
   s21::s21_map<int, int> s21map{{1, 2}, {3, 4}, {5, 6}};
   std::map<int, int> stdmap{{1, 2}, {3, 4}, {5, 6}};
+
+  ASSERT_EQ(s21map.begin()->first, stdmap.begin()->first);
+  ASSERT_EQ(s21map.begin()->second, stdmap.begin()->second);
+}
+
+TEST(Iterators_tests, Begin2) {
+  s21::s21_map<int, std::vector<int>> s21map{{1, {2, 3, 4}}, {5, {6, 7, 8}}};
+  std::map<int, std::vector<int>> stdmap{{1, {2, 3, 4}}, {5, {6, 7, 8}}};
 
   ASSERT_EQ(s21map.begin()->first, stdmap.begin()->first);
   ASSERT_EQ(s21map.begin()->second, stdmap.begin()->second);
@@ -163,6 +193,14 @@ TEST(Modifiers_tests, Insert2) {
   ASSERT_EQ(s21map.insert(1, 2).second, stdmap.insert({1, 2}).second);
 }
 
+TEST(Modifiers_tests, Insert3) {
+  s21::s21_map<std::string, std::vector<int>> s21map;
+  std::map<std::string, std::vector<int>> stdmap;
+
+  ASSERT_EQ(s21map.insert({"fruits", {1, 2, 3}}).second,
+            stdmap.insert({"fruits", {1, 2, 3}}).second);
+}
+
 TEST(Modifiers_tests, InsertOrAssign) {
   s21::s21_map<int, int> s21map;
   std::map<int, int> stdmap;
@@ -212,6 +250,15 @@ TEST(Lookup_tests, Contains) {
 
   ASSERT_TRUE(looking.contains(1));
   ASSERT_FALSE(looking.contains(7));
+}
+
+TEST(Lookup_tests, Contains2) {
+  s21::s21_map<std::string, std::vector<std::string>> looking{
+      {"fruits", {"apple", "banana", "cherry"}},
+      {"colors", {"red", "green", "blue"}}};
+
+  ASSERT_TRUE(looking.contains("fruits"));
+  ASSERT_FALSE(looking.contains("animals"));
 }
 
 TEST(Bonus_tests, InsertMany) {

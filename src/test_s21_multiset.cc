@@ -131,6 +131,34 @@ TEST(Modifiers_tests, TestInsert) {
   ASSERT_EQ(my_multiset.contains(5), std_multiset.count(5) > 0);
 }
 
+TEST(Modifiers_tests, TestInsert2) {
+  s21::s21_multiset<int> my_multiset;
+  std::multiset<int> std_multiset;
+  for (int i = 0; i < 1e6; i++) {
+    my_multiset.insert(i);
+    std_multiset.insert(i);
+  }
+  auto it1 = my_multiset.begin();
+  auto it2 = std_multiset.begin();
+  for (; it1 != my_multiset.end(), it1 != my_multiset.end(); it1++, it2++) {
+    ASSERT_EQ(*it1, (*it2));
+  }
+  ASSERT_EQ(my_multiset.size(), std_multiset.size());
+}
+
+TEST(Modifiers_tests, TestInsert3) {
+  s21::s21_multiset<std::string> mset;
+  std::multiset<std::string> std_mset;
+
+  mset.insert("apple");
+  mset.insert("banana");
+  std_mset.insert("apple");
+  std_mset.insert("banana");
+
+  EXPECT_EQ(mset.size(), std_mset.size());
+  EXPECT_EQ(*mset.begin(), *std_mset.begin());
+}
+
 TEST(MultisetTest, Erase) {
   s21::s21_multiset<int> mset = {1, 2, 3, 4};
   std::multiset<int> std_mset = {1, 2, 3, 4};
@@ -192,6 +220,17 @@ TEST(Lookup_tests, TestFind) {
   std::multiset<int> std_mset = {1, 2, 3, 4};
 
   EXPECT_EQ((*mset.find(3)), *std_mset.find(3));
+}
+
+TEST(Lookup_tests, TestFind2) {
+  s21::s21_multiset<int> my_multiset;
+  std::multiset<int> std_multiset;
+
+  ASSERT_EQ(my_multiset.find(5), my_multiset.end());
+  ASSERT_EQ(std_multiset.find(5), std_multiset.end());
+
+  ASSERT_EQ(my_multiset.count(5), 0);
+  ASSERT_EQ(std_multiset.count(5), 0);
 }
 
 TEST(Lookup_tests, TestCount) {

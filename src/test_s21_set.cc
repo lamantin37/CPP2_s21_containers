@@ -83,6 +83,15 @@ TEST(Iterators_tests, TestBeginEnd) {
   ASSERT_EQ(s.end(), s21::s21_set<int>::iterator());
 }
 
+TEST(Iterators_tests, TestBeginEnd2) {
+  s21::s21_set<int> s;
+  s.insert(1);
+  s.insert(2);
+  s.erase(s.begin());
+  ASSERT_EQ(*s.begin(), 2);
+  ASSERT_EQ(s.end(), s21::s21_set<int>::iterator());
+}
+
 TEST(Capacity_tests, TestEmpty) {
   s21::s21_set<int> s;
   ASSERT_TRUE(s.empty());
