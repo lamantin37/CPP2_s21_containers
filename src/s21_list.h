@@ -1,394 +1,213 @@
-#ifndef CPP2_S21_CONTAINERS_S21_LIST_H_
-#define CPP2_S21_CONTAINERS_S21_LIST_H_
+#ifndef S21_LIST_H_INCLUDED
+#define S21_LIST_H_INCLUDED
 
-#include <cstddef>
 #include <iostream>
-#include <limits>
-#include <stdexcept>
-
-#include "s21_multiset.h"
-#include "s21_set.h"
+#include <algorithm>
+#include <functional>
 
 namespace s21 {
-
-template <typename T>
-struct node;
-
-template <typename T>
-struct node {
-  T value;
-  node *prev;
-  node *next;
-};
-
 template <typename T>
 class list {
- public:
-  class ListIterator {
-   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using pointer = T *;
-    using reference = T &;
-    using difference_type = std::ptrdiff_t;
+private:
+    struct Node {
+        T value;
+        Node* prev = nullptr;
+        Node* next = nullptr;
+        double relative_position = 0;
+    };
+    Node* tail = nullptr;
+    Node* head = nullptr;
 
-    ListIterator(node<T> *ptr) : current(ptr) {}
+public:
+    template <bool IsConst = false>
+    class list_iterator {
+    private:
+        using Node = std::conditional_t<IsConst, const Node, Node>;
 
-    reference operator*() const { return current->value; }
+    protected:
+        Node* current;
+        friend class list<T>;
 
-    pointer operator->() const { return &(current->value); }
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = T;
+        using pointer = std::conditional_t<IsConst, const T*, T*>;
+        using reference = std::conditional_t<IsConst, const T&, T&>;
+        using difference_type = std::ptrdiff_t;
 
-    ListIterator &operator++() {
-      current = current->next;
-      return *this;
-    }
+        list_iterator() : current(nullptr) {}
+        list_iterator(Node* ptr) : current(ptr) {}
+        ~list_iterator() {};
 
-    ListIterator &operator--() {
-      current = current->prev;
-      return *this;
-    }
+        ////////////////////////////////////////
+        // Increment and Decrement Operators
+        ////////////////////////////////////////
 
-    bool operator==(const ListIterator &other) const {
-      return current == other.current;
-    }
-
-    bool operator!=(const ListIterator &other) const {
-      return !(*this == other);
-    }
-
-   private:
-    node<T> *current;
-    friend class list<T>;
-  };
-
-  class ListConstIterator {
-   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using pointer = const T *;
-    using reference = const T &;
-    using difference_type = std::ptrdiff_t;
-
-    ListConstIterator(const node<T> *ptr) : current(ptr) {}
-
-    reference operator*() const { return current->value; }
-
-    pointer operator->() const { return &(current->value); }
-
-    ListConstIterator &operator++() {
-      current = current->next;
-      return *this;
-    }
-
-    ListConstIterator &operator--() {
-      current = current->prev;
-      return *this;
-    }
-
-    bool operator==(const ListConstIterator &other) const {
-      return current == other.current;
-    }
-
-    bool operator!=(const ListConstIterator &other) const {
-      return !(*this == other);
-    }
-
-   private:
-    const node<T> *current;
-    friend class list<T>;
-  };
-
- public:
-  using value_type = T;
-  using reference = T &;
-  using const_reference = const T &;
-  using iterator = ListIterator;
-  using const_iterator = ListConstIterator;
-  using size_type = size_t;
-
-  // List Member functions ==================================
-  list() {
-    data.value = T{};
-    data.prev = nullptr;
-    data.next = nullptr;
-  };
-
-  list(size_type n) {
-    data.prev = nullptr;
-    data.next = nullptr;
-    for (size_type i = 0; i < n; ++i) {
-      push_back(T());
-    }
-  };
-
-  list(std::initializer_list<T> const &items) {
-    data.prev = nullptr;
-    data.next = nullptr;
-    for (const_reference item : items) {
-      push_back(item);
-    }
-  };
-
-  list(const list &l) {
-    data.prev = nullptr;
-    data.next = nullptr;
-    for (const_reference item : l) {
-      push_back(item);
-    }
-  };
-
-  list(list &&l) {
-    data.prev = nullptr;
-    data.next = nullptr;
-    swap(l);
-  };
-
-  list &operator=(list &&l) {
-    if (this != &l) {
-      swap(l);
-      l.clear();
-    }
-    return *this;
-  }
-
-  ~list() { clear(); };
-
-  // ========================================================
-
-  // List Element access =====================================
-  const_reference front() const {
-    if (data.next == nullptr) {
-      throw std::runtime_error("The list is empty, front() cannot be called.");
-    }
-    return data.next->value;
-  };
-
-  const_reference back() const {
-    if (data.next == nullptr) {
-      throw std::runtime_error("The list is empty, back() cannot be called.");
-    }
-    node<T> *lastNode = data.next;
-    while (lastNode->next != nullptr) {
-      lastNode = lastNode->next;
-    }
-    return lastNode->value;
-  };
-
-  // ========================================================
-
-  // List Iterators  =========================================
-  iterator begin() noexcept { return iterator(data.next); };
-  iterator end() noexcept { return iterator(nullptr); };
-  const_iterator begin() const noexcept { return const_iterator(data.next); };
-  const_iterator end() const noexcept { return const_iterator(nullptr); };
-
-  // ========================================================
-
-  // Map Capacity ===========================================
-  bool empty() const noexcept { return data.next == nullptr; };
-
-  size_type size() const noexcept {
-    size_type count = 0;
-    for (auto it = begin(); it != end(); ++it) {
-      ++count;
-    }
-    return count;
-  }
-
-  size_type max_size() const noexcept {
-    return std::numeric_limits<size_type>::max();
-  };
-
-  // ========================================================
-
-  //  Map Modifiers =========================================
-  void clear() noexcept {
-    while (!empty()) {
-      pop_back();
-    }
-  };
-
-  iterator insert(iterator pos, const_reference value) noexcept {
-    node<T> *newNode = new node<T>{value, nullptr, nullptr};
-    if (pos.current == nullptr) {
-      if (data.next == nullptr) {
-        data.next = newNode;
-        newNode->prev = &data;
-      } else {
-        node<T> *lastNode = data.next;
-        while (lastNode->next != nullptr) {
-          lastNode = lastNode->next;
+        list_iterator& operator++() {
+            current = current->next;
+            return *this;
         }
-        lastNode->next = newNode;
-        newNode->prev = lastNode;
-      }
-    } else {
-      newNode->next = pos.current;
-      newNode->prev = pos.current->prev;
-      pos.current->prev->next = newNode;
-      pos.current->prev = newNode;
-    }
-    return iterator(newNode);
-  };
 
-  iterator erase(iterator pos) noexcept {
-    if (pos == begin()) {
-      pop_front();
-    } else if (pos == end()) {
-      pop_back();
-    } else {
-      pos.current->prev->next = pos.current->next;
-      pos.current->next->prev = pos.current->prev;
-      node<T> *tmp = pos.current->next;
-      delete pos.current;
-      pos.current = tmp;
-    }
-    return pos;
-  }
+        list_iterator operator++(int) {
+            list_iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
 
-  void erase(iterator *pos) noexcept { *pos = erase(*pos); }
+        list_iterator& operator--() {
+            current = current->prev;
+            return *this;
+        }
 
-  void push_back(const_reference value) noexcept { insert(end(), value); };
+        list_iterator operator--(int) {
+            list_iterator temp = *this;
+            --(*this);
+            return temp;
+        }
 
-  void push_front(const_reference value) noexcept { insert(begin(), value); };
+        ////////////////////////////////////////
+        // Addition and subtraction operators
+        ////////////////////////////////////////
 
-  void pop_back() noexcept {
-    if (data.next == nullptr) {
-      return;
-    }
-    node<T> *lastNode = data.next;
-    while (lastNode->next != nullptr) {
-      lastNode = lastNode->next;
-    }
-    lastNode->prev->next = nullptr;
-    delete lastNode;
-  };
+        list_iterator operator+(difference_type n) const {
+            list_iterator temp = *this;
+            temp += n;
+            return temp;
+        }
 
-  void pop_front() noexcept {
-    if (data.next == nullptr) {
-      return;
-    }
-    node<T> *firstNode = data.next;
-    data.next = firstNode->next;
-    data.next->prev = &data;
-    delete firstNode;
-  };
+        list_iterator operator-(difference_type n) const {
+            list_iterator temp = *this;
+            temp -= n;
+            return temp;
+        }
 
-  void swap(list &other) noexcept {
-    std::swap(data.next, other.data.next);
-    std::swap(data.prev, other.data.prev);
-    if (data.next != nullptr) {
-      data.next->prev = &data;
-    }
-    if (other.data.next != nullptr) {
-      other.data.next->prev = &(other.data);
-    }
-  };
+        list_iterator& operator+=(difference_type n) {
+            for (difference_type i = 0; i < n; ++i) {
+                ++(*this);
+            }
+            return *this;
+        }
 
-  void merge(list<T> &other) noexcept {
-    sort();
-    other.sort();
-    if (&other == this) {
-      return;
-    }
-    for (auto it = other.begin(); it != other.end(); ++it) {
-      push_back(*it);
-    }
-    other.clear();
-    unique();
-  }
+        list_iterator& operator-=(difference_type n) {
+            for (difference_type i = 0; i < n; ++i) {
+                --(*this);
+            }
+            return *this;
+        }
 
-  void splice(const_iterator pos, list &other) noexcept {
-    if (&other == this || other.empty()) {
-      return;
-    }
+        ////////////////////////////////////////
+        // Dereference operator
+        ////////////////////////////////////////
 
-    auto connect_nodes = [](node<T> *prev_node, node<T> *first_node,
-                            node<T> *last_node) {
-      prev_node->next = first_node;
-      first_node->prev = prev_node;
-      last_node->next = nullptr;
+        reference operator*() const { return current->value; }
+        pointer operator->() const { return &(current->value); }
+
+        ////////////////////////////////////////
+        // Operator for accessing elements via index
+        ////////////////////////////////////////
+
+        reference operator[](difference_type n) const {
+            list_iterator temp = *this;
+            temp += n;
+            return *temp;
+        }
+
+        ////////////////////////////////////////
+        // Comparison operator
+        ////////////////////////////////////////
+
+        bool operator==(const list_iterator& other) const { return current == other.current; }
+        bool operator!=(const list_iterator& other) const { return current != other.current; }
+        bool operator<(const list_iterator& other) const {return (current->relative_position) < (other.current->relative_position);}
+        bool operator>(const list_iterator& other) const {return !(*this < other) && (*this != other);}
+        bool operator>=(const list_iterator& other) const {return (*this > other) || (*this == other);}
+        bool operator<=(const list_iterator& other) const {return (*this < other) || (*this == other);}
+        difference_type operator-(const list_iterator& other) const {return (other.current->relative_position - current->relative_position + 1) * (*this <= other ? 1: -1);}
     };
 
-    auto thisCurrent = pos.current;
-    auto otherFirst = other.data.next;
-    auto otherLast = otherFirst;
+    using value_type = T;
+    using reference = T &;
+    using const_reference = const T &;
+    using iterator = list_iterator<false>;
+    using const_iterator = list_iterator<true>;
+    using size_type = size_t;
 
-    if (!thisCurrent) {
-      while (otherLast->next) {
-        otherLast = otherLast->next;
-      }
+    ////////////////////////////////////////
+    // CONSTRUCTORS
+    ////////////////////////////////////////
+
+    #define ZERO_BLOCK head = tail = new Node {0, nullptr, nullptr, 0.f};
+    list() { ZERO_BLOCK }
+
+    list(size_type n) {
+        ZERO_BLOCK
+        for (size_type i = 0; i < n; ++i) push_back(T{});
     }
 
-    if (thisCurrent == data.next) {
-      data.next = otherFirst;
-      otherFirst->prev = &data;
-    } else {
-      connect_nodes(thisCurrent->prev, otherFirst, otherLast);
+    list(std::initializer_list<value_type> const &items): head(new Node {0, nullptr, nullptr, 0.f}), tail(head) {
+        ZERO_BLOCK
+        for (const auto &item : items) push_back(item);
+    }
+    #undef ZERO_BLOCK
+
+    list(const list &l) { list tmp(l.begin(), l.end()); swap(tmp); }
+    list(list &&l) noexcept { swap(l); }
+    operator=(list &&l) noexcept { swap(l); return *this; }
+    ~list() {clear();}
+
+    ////////////////////////////////////////
+    // List Element access
+    ////////////////////////////////////////
+
+    const_reference front() noexcept { return head->value; }
+    const_reference back() noexcept { return tail->value; }
+
+    ////////////////////////////////////////
+    // List Iterators
+    ////////////////////////////////////////
+
+    iterator begin() noexcept { return iterator(head); };
+    iterator end() noexcept { return iterator(tail); }
+
+    ////////////////////////////////////////
+    // List Capacity
+    ////////////////////////////////////////
+
+    bool empty() { return size() == 0; }
+    size_type size() { return std::distance(begin(), end()); }
+    size_type max_size() { return std::numeric_limits<size_type>::max(); }
+
+    ////////////////////////////////////////
+    // List Modifiers
+    ////////////////////////////////////////
+
+    #define try_catch_block(func_name) try { func_name(); } catch (const std::exception &exception) { std::cerr << "Exception: " << exception.what() << std::endl; throw;}
+    void push_back(const_reference value) { try_catch_block([&]() { insert(end(), value); }); }
+    void pop_back() { try_catch_block([&]() { erase(end()); }); }
+    void push_front(const_reference value) { try_catch_block([&]() { insert(begin(), value); }); }
+    void pop_front() { try_catch_block([&]() { erase(begin()); }); }
+    #undef try_catch_block
+
+    void sort() noexcept { std::sort(begin(), end()); }
+    void reverse() noexcept { std::reverse(begin(), end()); }
+    void unique() noexcept { std::unique(begin(), end()); }
+
+    iterator insert(iterator pos, const_reference value) {
+        Node* tmp = new Node{value, pos.current->prev, pos.current, pos.current->prev ? (pos != end() ? (pos.current->prev->relative_position + pos.current->relative_position) / 2.f : pos.current->prev->relative_position + 1.f) : pos.current->relative_position - 1.f};
+        head = (pos.current = pos.current->prev = pos.current->prev ? pos.current->prev->next = tmp : tmp)->prev ? head : tmp;
+        return iterator(tmp);
     }
 
-    if (thisCurrent) {
-      thisCurrent->prev = otherLast;
+    void erase(iterator it) {
+        it.current->prev ? (it.current->next ? (it.current->prev->next = it.current->next, it.current->next->prev = it.current->prev): (tail = it.current->prev, it.current->prev->next = nullptr)): (head = it.current->next, it.current->next->prev = nullptr);
+        delete[] it.current;
     }
 
-    other.data.next = nullptr;
-  }
-
-  void reverse() noexcept {
-    list<T> temp;
-    for (const auto &value : *this) {
-      temp.push_front(value);
-    }
-    swap(temp);
-  }
-
-  void unique() noexcept {
-    s21_set<T> tmp_set_list;
-    for (auto it = begin(); it != end(); ++it) {
-      tmp_set_list.insert(*it);
-    }
-    clear();
-    for (auto it = tmp_set_list.begin(); it != tmp_set_list.end(); it++) {
-      push_back(it->first);
-    }
-  };
-
-  void sort() noexcept {
-    s21_multiset<T> tmp_set_list;
-    for (auto it = begin(); it != end(); ++it) {
-      tmp_set_list.insert(*it);
-    }
-    clear();
-    for (auto it = tmp_set_list.begin(); it != tmp_set_list.end(); it++) {
-      push_back(it->first);
-    }
-  };
-
-  // ========================================================
-
-  // Insert Many  ===========================================
-  template <typename... Args>
-  iterator insert_many(const_iterator pos, Args &&...args) {
-    iterator it = insert(pos, std::forward<Args>(args)...);
-    return it;
-  }
-
-  template <typename... Args>
-  void insert_many_back(Args &&...args) {
-    ((void)push_back(std::forward<Args>(args)), ...);
-  }
-
-  template <typename... Args>
-  void insert_many_front(Args &&...args) {
-    ListIterator it = begin();
-    while (it != end()) {
-      it = insert(it, std::forward<Args>(args)...);
-    }
-  }
-
- private:
-  struct node<T> data;
+    void swap(list& other) { std::swap(head, other.head), std::swap(tail, other.tail); }
+    void merge(list& other) { splice(end(), other); other.clear(); }
+    void splice(iterator pos, list& other) { for (; !other.empty(); other.pop_front()) insert(pos, *other.begin()); }
+    void clear() { std::for_each(begin(), end(), [&](const T& value) { erase(iterator(head)); }); }
 };
-}  // namespace s21
+}; // namespace s21
 
-#endif  // CPP2_S21_CONTAINERS_S21_LIST_H_
+#endif // S21_LIST_H_INCLUDED
