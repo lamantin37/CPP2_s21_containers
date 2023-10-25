@@ -290,19 +290,20 @@ class list {
 
   template <typename... Args>
   iterator insert_many(iterator pos, Args&&... args) {
-    
+    (insert(pos, std::forward<Args>(args)), ...);
+    return pos;
   }
 
   template <typename... Args>
   void insert_many_back(Args&&... args) {
-    
+    (push_back(std::forward<Args>(args)), ...);
   }
 
   template <typename... Args>
   void insert_many_front(Args&&... args) {
-    
+    (push_front(std::forward<Args>(args)), ...);
   }
-  
+
 };
 };  // namespace s21
 
