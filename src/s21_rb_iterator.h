@@ -124,6 +124,15 @@ class s21_iterator {
 
   bool operator!=(const s21_iterator &other) const { return !(*this == other); }
 
+  bool operator>(const s21_iterator &other) const { return ptr_ > other.ptr_; }
+  bool operator>=(const s21_iterator &other) const {
+    return ptr_ >= other.ptr_;
+  }
+  bool operator<(const s21_iterator &other) const { return ptr_ < other.ptr_; }
+  bool operator<=(const s21_iterator &other) const {
+    return ptr_ <= other.ptr_;
+  }
+
   Key &key() const { return ptr_->key_value.first; }
 
  private:

@@ -2,6 +2,7 @@
 #define CPP2_S21_CONTAINERS_S21_RB_TREE_H_
 
 #include <iostream>
+#include <stack>
 const bool kBlack = true;
 const bool kRed = false;
 
@@ -28,13 +29,14 @@ class Tree {
     node_ = nullptr;
     size_ = 0;
   }
+
   Tree(Tree<K, V> &&other) : node_(other.node_), size_(other.size_) {
     other.node_ = nullptr;
     other.size_ = 0;
   }
+
   Tree &operator=(Tree &&other) {
     if (this != &other) {
-      // delete node_;
       node_ = other.node_;
       size_ = other.size_;
       other.node_ = nullptr;
@@ -42,10 +44,12 @@ class Tree {
     }
     return *this;
   }
+
   Tree(const Tree<K, V> &other) {
     node_ = copyTree(other.node_);
     size_ = other.size_;
   }
+
   Tree &operator=(const Tree<K, V> &other) {
     if (this != &other) {
       clearTree(node_);
@@ -54,228 +58,182 @@ class Tree {
     }
     return *this;
   }
+
   size_t getSize() const { return size_; }
+
   node<K, V> *getNode() const { return node_; }
+
   void insertValue(bool is_multiset, const K &key, const V &value = 0) {
-    if (node_ == nullptr) {
+    if (!node_)
       node_ = new node<K, V>(key, value, kBlack);
-      size_++;
-    } else {
-      node<K, V> *newNode = insertNode(is_multiset, node_, key, value);
-      if (newNode != nullptr) {
-        insertBalancing(newNode);
-        size_++;
-      }
-    }
+    else if (node<K, V> *newNode = insertNode(is_multiset, node_, key, value))
+      insertBalancing(newNode);
+    size_++;
   }
+
   node<K, V> *findValue(const K &key) { return binarySearch(node_, key); }
+
   void removeValue(const K &key) {
     node<K, V> *removing_node = findValue(key);
-    if (removing_node) {
-      size_--;
-      removeNode(removing_node);
-    } else {
-      std::cout << "No such value in the tree" << std::endl;
-    }
+    if (!removing_node) return;
+    size_--;
+    removeNode(removing_node);
   }
-  node<K, V> *getMinimum() const {
-    if (node_ == nullptr) {
-      return nullptr;
-    }
-    node<K, V> *current = node_;
-    while (current->left != nullptr) {
-      current = current->left;
-    }
-    return current;
-  }
-  node<K, V> *getMaximum() const {
-    node<K, V> *current = node_;
-    while (current && current->right != nullptr) {
-      current = current->right;
-    }
-    return current;
-  }
+
+  node<K, V> *getMinimum() const { return getExtremeNode(node_, true); }
+
+  node<K, V> *getMaximum() const { return getExtremeNode(node_, false); }
 
  private:
   node<K, V> *node_;
   size_t size_;
+
+  node<K, V> *getExtremeNode(node<K, V> *start, bool isLeft) const {
+    if (!start) return nullptr;
+    node<K, V> *current = start;
+    while ((isLeft && current->left) || (!isLeft && current->right))
+      current = isLeft ? current->left : current->right;
+    return current;
+  }
+
   node<K, V> *copyTree(const node<K, V> *source) {
     if (!source) return nullptr;
-    node<K, V> *newNode =
-        new node<K, V>(source->key_value.first, source->key_value.second);
-    newNode->color = source->color;
-    newNode->left = copyTree(source->left);
-    newNode->right = copyTree(source->right);
-
-    if (newNode->left) newNode->left->parent = newNode;
-    if (newNode->right) newNode->right->parent = newNode;
-
-    return newNode;
+    std::stack<std::pair<const node<K, V> *, node<K, V> *>> stack;
+    node<K, V> *root = new node<K, V>(source->key_value.first,
+                                      source->key_value.second, source->color);
+    stack.push({source, root});
+    while (!stack.empty()) {
+      auto [src, dest] = stack.top();
+      stack.pop();
+      for (int i = 0; i < 2; ++i) {
+        const node<K, V> *childSrc = i ? src->right : src->left;
+        if (!childSrc) continue;
+        node<K, V> *&childDest = i ? dest->right : dest->left;
+        childDest = new node<K, V>(childSrc->key_value.first,
+                                   childSrc->key_value.second, childSrc->color);
+        childDest->parent = dest;
+        stack.push({childSrc, childDest});
+      }
+    }
+    return root;
   }
+
   void clearTree(node<K, V> *root) {
-    if (!root) return;
-    clearTree(root->left);
-    clearTree(root->right);
-    delete root;
+    std::stack<node<K, V> *> s;
+    for (s.push(root); !s.empty(); delete root) {
+      root = s.top();
+      s.pop();
+      root->left &&s.push(root->left);
+      root->right &&s.push(root->right);
+    }
   }
-  void leftRotate(node<K, V> *root) {
-    node<K, V> *new_root = root->right;
-    root->right = new_root->left;
-    if (new_root->left) new_root->left->parent = root;
+
+  enum Direction { LEFT, RIGHT };
+
+  void rotate(node<K, V> *root, Direction dir) {
+    node<K, V> *new_root = (dir == LEFT) ? root->right : root->left;
+    node<K, V> **child_ptr = (dir == LEFT) ? &(root->right) : &(root->left);
+    node<K, V> **opp_child_ptr =
+        (dir == LEFT) ? &(new_root->left) : &(new_root->right);
+    *child_ptr = *opp_child_ptr;
+    if (*opp_child_ptr) (*opp_child_ptr)->parent = root;
     new_root->parent = root->parent;
     if (!root->parent)
       node_ = new_root;
-    else if (root == root->parent->left)
-      root->parent->left = new_root;
+    else if (root == ((dir == LEFT) ? root->parent->left : root->parent->right))
+      (dir == LEFT ? root->parent->left : root->parent->right) = new_root;
     else
-      root->parent->right = new_root;
-    new_root->left = root;
+      (dir == LEFT ? root->parent->right : root->parent->left) = new_root;
+    *opp_child_ptr = root;
     root->parent = new_root;
   }
-  void rightRotate(node<K, V> *root) {
-    node<K, V> *new_root = root->left;
-    root->left = new_root->right;
-    if (new_root->right) new_root->right->parent = root;
-    new_root->parent = root->parent;
-    if (!root->parent)
-      node_ = new_root;
-    else if (root == root->parent->right)
-      root->parent->right = new_root;
-    else
-      root->parent->left = new_root;
-    new_root->right = root;
-    root->parent = new_root;
-  }
-  bool isBlack(node<K, V> *n) { return n != nullptr && n->color == kBlack; }
-  bool isRed(node<K, V> *n) { return n != nullptr && n->color == kRed; }
+
+  void leftRotate(node<K, V> *root) { rotate(root, LEFT); }
+
+  void rightRotate(node<K, V> *root) { rotate(root, RIGHT); }
+
   bool blackSiblingRedChild(node<K, V> *n) {
     node<K, V> *s = getSibling(n);
-    return isBlack(s) && (isRed(s->left) || isRed(s->right));
+    return checkColor(s, kBlack) &&
+           (checkColor(s->left, kRed) || checkColor(s->right, kRed));
   }
+
   node<K, V> *getSibling(node<K, V> *n) {
-    if (n == n->parent->left)
-      return n->parent->right;
-    else
-      return n->parent->left;
+    return (n == n->parent->left) ? n->parent->right : n->parent->left;
   }
-  bool isSiblingRed(node<K, V> *n) {
-    node<K, V> *s = getSibling(n);
-    return isRed(s);
+
+  bool isSiblingRed(node<K, V> *n) { return checkColor(getSibling(n), kRed); }
+
+  bool checkColor(node<K, V> *n, bool color) {
+    return n != nullptr && n->color == color;
   }
-  void makeBlack(node<K, V> *n) {
-    if (n != nullptr) n->color = kBlack;
+  void setColor(node<K, V> *n, bool color) {
+    if (n) n->color = color;
   }
-  void makeRed(node<K, V> *n) {
-    if (n != nullptr) n->color = kRed;
-  }
+
   void insertBalancing(node<K, V> *root) {
     while (root->parent && root->parent->color == kRed) {
-      if (root->parent == root->parent->parent->left) {
-        node<K, V> *new_root = root->parent->parent->right;  // расмотрим дядю
-        if (new_root && new_root->color == kRed) {  // красный дядя
-          root->parent->color = kBlack;
-          new_root->color = kBlack;
-          root->parent->parent->color = kRed;
-          root = root->parent->parent;
-        } else {  // чёрный дядя
-          if (root ==
-              root->parent
-                  ->right) {  // если это правый потомок выполняем левый поворот
-            root = root->parent;  // обновляем указатель - теперь указываем на
-                                  // родителя
-            leftRotate(root);
-          }
-          root->parent->color = kBlack;
-          root->parent->parent->color = kRed;
-          rightRotate(root->parent->parent);
-        }
+      bool isLeft = root->parent == root->parent->parent->left;
+      node<K, V> *uncle =
+          isLeft ? root->parent->parent->right : root->parent->parent->left;
+      if (uncle && uncle->color == kRed) {
+        root->parent->color = kBlack;
+        uncle->color = kBlack;
+        root->parent->parent->color = kRed;
+        root = root->parent->parent;
       } else {
-        node<K, V> *new_root = root->parent->parent->left;
-        if (new_root && new_root->color == kRed) {
-          root->parent->color = kBlack;
-          new_root->color = kBlack;
-          root->parent->parent->color = kRed;
-          root = root->parent->parent;
-        } else {
-          if (root == root->parent->left) {
-            root = root->parent;
-            rightRotate(root);
-          }
-          root->parent->color = kBlack;
-          root->parent->parent->color = kRed;
-          leftRotate(root->parent->parent);
+        if (root == (isLeft ? root->parent->right : root->parent->left)) {
+          root = root->parent;
+          isLeft ? leftRotate(root) : rightRotate(root);
         }
+        root->parent->color = kBlack;
+        root->parent->parent->color = kRed;
+        isLeft ? rightRotate(root->parent->parent)
+               : leftRotate(root->parent->parent);
       }
     }
     node_->color = kBlack;
   }
 
   void removeBalancing(node<K, V> *tested_node) {
-    while (tested_node != node_ && (tested_node != nullptr ||
-                                    tested_node->color == kBlack)) {  // всё ок
-      if (tested_node == tested_node->parent->left) {  // всё ок
-        node<K, V> *brother = getSibling(tested_node);
-        if (brother == nullptr) {
-          continue;
-        }
-        if (brother->color == kRed) {
-          // brother->color == kBlack;
-          tested_node->parent->color = kRed;
-          leftRotate(tested_node->parent);
-        }
-        if ((brother->left == nullptr || brother->left->color == kBlack) &&
-            (brother->right == nullptr || brother->right->color == kBlack)) {
-          brother->color = kRed;
-        } else {
-          if (brother->right == nullptr || brother->right->color == kBlack) {
-            brother->left->color = kBlack;
-            brother->color = kRed;
-            rightRotate(brother);
-          }
-          brother->color = tested_node->parent->color;
-          tested_node->parent->color = kBlack;
-          brother->right->color = kBlack;
-          leftRotate(tested_node->parent);
-          tested_node = node_;
-        }
+    while (tested_node != node_ &&
+           (!tested_node || tested_node->color == kBlack)) {
+      bool isLeft = tested_node == tested_node->parent->left;
+      node<K, V> *brother = getSibling(tested_node);
+      if (!brother) continue;
+      if (brother->color == kRed) {
+        tested_node->parent->color = kRed;
+        isLeft ? leftRotate(tested_node->parent)
+               : rightRotate(tested_node->parent);
+      }
+      if ((!brother->left || brother->left->color == kBlack) &&
+          (!brother->right || brother->right->color == kBlack)) {
+        brother->color = kRed;
       } else {
-        node<K, V> *brother = getSibling(tested_node);
-        if (brother == nullptr) {
-          continue;
-        }
-        if (brother->color == kRed) {
-          // brother->color == kBlack;
-          tested_node->parent->color = kRed;
-          rightRotate(tested_node->parent);
-        }
-        if ((brother->left == nullptr || brother->left->color == kBlack) &&
-            (brother->right == nullptr || brother->right->color == kBlack)) {
+        if (isLeft ? (!brother->right || brother->right->color == kBlack)
+                   : (!brother->left || brother->left->color == kBlack)) {
+          (isLeft ? brother->left : brother->right)->color = kBlack;
           brother->color = kRed;
-        } else {
-          if (brother->left == nullptr || brother->left->color == kBlack) {
-            brother->right->color = kBlack;
-            brother->color = kRed;
-            leftRotate(brother);
-          }
-          brother->color = tested_node->parent->color;
-          tested_node->parent->color = kBlack;
-          brother->left->color = kBlack;
-          rightRotate(tested_node->parent);
-          tested_node = node_;
+          isLeft ? rightRotate(brother) : leftRotate(brother);
         }
+        brother->color = tested_node->parent->color;
+        tested_node->parent->color = kBlack;
+        (isLeft ? brother->right : brother->left)->color = kBlack;
+        isLeft ? leftRotate(tested_node->parent)
+               : rightRotate(tested_node->parent);
+        tested_node = node_;
       }
     }
-    tested_node->color = kBlack;
+    if (tested_node) tested_node->color = kBlack;
     node_->color = kBlack;
   }
 
   node<K, V> *getNext(node<K, V> *current) {
-    node<K, V> *next_node = current;
-    while (next_node->left) {
-      next_node = next_node->left;
-    }
-    return next_node;
+    for (; current->left; current = current->left)
+      ;
+    return current;
   }
+
   void removeNode(node<K, V> *node_to_remove) {
     if (!node_to_remove->left &&
         !node_to_remove->right) {  // у вершины нет детей
@@ -345,46 +303,25 @@ class Tree {
 
   node<K, V> *insertNode(bool is_multiset, node<K, V> *parent, const K &key,
                          const V &value) {
-    node<K, V> *current = parent;
     node<K, V> *last = parent;
-    while (current != nullptr) {
-      last = current;
-      if (is_multiset) {
-        if (key < current->key_value.first) {
-          current = current->left;
-        } else if (key >= current->key_value.first) {
-          current = current->right;
-        }
-      } else {
-        if (key < current->key_value.first) {
-          current = current->left;
-        } else if (key > current->key_value.first) {
-          current = current->right;
-        } else {
-          return nullptr;
-        }
-      }
+    while (parent) {
+      last = parent;
+      parent =
+          (key < parent->key_value.first)
+              ? parent->left
+              : ((is_multiset || key > parent->key_value.first) ? parent->right
+                                                                : nullptr);
     }
     node<K, V> *new_node = new node<K, V>(key, value, kRed, last);
-    if (key < last->key_value.first) {
-      last->left = new_node;
-    } else {
-      last->right = new_node;
-    }
+    (key < last->key_value.first ? last->left : last->right) = new_node;
     return new_node;
   }
 
-  node<K, V> *binarySearch(node<K, V> *current_node, const K &key) {
-    while (current_node != nullptr) {
-      if (key < current_node->key_value.first) {
-        current_node = current_node->left;
-      } else if (key > current_node->key_value.first) {
-        current_node = current_node->right;
-      } else {
-        return current_node;
-      }
+  node<K, V> *binarySearch(node<K, V> *n, const K &k) {
+    while (n && k != n->key_value.first) {
+      n = (k < n->key_value.first) ? n->left : n->right;
     }
-    return nullptr;
+    return n;
   }
 };
 
