@@ -3,8 +3,6 @@
 
 #include <iostream>
 #include <stack>
-const bool kBlack = true;
-const bool kRed = false;
 
 template <typename K, typename V = int>
 struct node {
@@ -12,8 +10,8 @@ struct node {
   node *parent;
   node *left;
   node *right;
-  bool color;
-  node(const K &key, const V &val = 0, const bool col = kBlack,
+  enum Color { BLACK, RED } color;
+  node(const K &key, const V &val = 0, const Color col = node<K, V>::BLACK,
        node *par = nullptr)
       : key_value(key, val),
         parent(par),
@@ -65,7 +63,7 @@ class Tree {
 
   void insertValue(bool is_multiset, const K &key, const V &value = 0) {
     if (!node_)
-      node_ = new node<K, V>(key, value, kBlack);
+      node_ = new node<K, V>(key, value, node<K, V>::BLACK);
     else if (node<K, V> *newNode = insertNode(is_multiset, node_, key, value))
       insertBalancing(newNode);
     size_++;
@@ -154,15 +152,18 @@ class Tree {
 
   bool blackSiblingRedChild(node<K, V> *n) {
     node<K, V> *s = getSibling(n);
-    return checkColor(s, kBlack) &&
-           (checkColor(s->left, kRed) || checkColor(s->right, kRed));
+    return checkColor(s, node<K, V>::BLACK) &&
+           (checkColor(s->left, node<K, V>::RED) ||
+            checkColor(s->right, node<K, V>::RED));
   }
 
   node<K, V> *getSibling(node<K, V> *n) {
     return (n == n->parent->left) ? n->parent->right : n->parent->left;
   }
 
-  bool isSiblingRed(node<K, V> *n) { return checkColor(getSibling(n), kRed); }
+  bool isSiblingRed(node<K, V> *n) {
+    return checkColor(getSibling(n), node<K, V>::RED);
+  }
 
   bool checkColor(node<K, V> *n, bool color) {
     return n != nullptr && n->color == color;
@@ -172,60 +173,62 @@ class Tree {
   }
 
   void insertBalancing(node<K, V> *root) {
-    while (root->parent && root->parent->color == kRed) {
+    while (root->parent && root->parent->color == node<K, V>::RED) {
       bool isLeft = root->parent == root->parent->parent->left;
       node<K, V> *uncle =
           isLeft ? root->parent->parent->right : root->parent->parent->left;
-      if (uncle && uncle->color == kRed) {
-        root->parent->color = kBlack;
-        uncle->color = kBlack;
-        root->parent->parent->color = kRed;
+      if (uncle && uncle->color == node<K, V>::RED) {
+        root->parent->color = node<K, V>::BLACK;
+        uncle->color = node<K, V>::BLACK;
+        root->parent->parent->color = node<K, V>::RED;
         root = root->parent->parent;
       } else {
         if (root == (isLeft ? root->parent->right : root->parent->left)) {
           root = root->parent;
           isLeft ? leftRotate(root) : rightRotate(root);
         }
-        root->parent->color = kBlack;
-        root->parent->parent->color = kRed;
+        root->parent->color = node<K, V>::BLACK;
+        root->parent->parent->color = node<K, V>::RED;
         isLeft ? rightRotate(root->parent->parent)
                : leftRotate(root->parent->parent);
       }
     }
-    node_->color = kBlack;
+    node_->color = node<K, V>::BLACK;
   }
 
   void removeBalancing(node<K, V> *tested_node) {
     while (tested_node != node_ &&
-           (!tested_node || tested_node->color == kBlack)) {
+           (!tested_node || tested_node->color == node<K, V>::BLACK)) {
       bool isLeft = tested_node == tested_node->parent->left;
       node<K, V> *brother = getSibling(tested_node);
       if (!brother) continue;
-      if (brother->color == kRed) {
-        tested_node->parent->color = kRed;
+      if (brother->color == node<K, V>::RED) {
+        tested_node->parent->color = node<K, V>::RED;
         isLeft ? leftRotate(tested_node->parent)
                : rightRotate(tested_node->parent);
       }
-      if ((!brother->left || brother->left->color == kBlack) &&
-          (!brother->right || brother->right->color == kBlack)) {
-        brother->color = kRed;
+      if ((!brother->left || brother->left->color == node<K, V>::BLACK) &&
+          (!brother->right || brother->right->color == node<K, V>::BLACK)) {
+        brother->color = node<K, V>::RED;
       } else {
-        if (isLeft ? (!brother->right || brother->right->color == kBlack)
-                   : (!brother->left || brother->left->color == kBlack)) {
-          (isLeft ? brother->left : brother->right)->color = kBlack;
-          brother->color = kRed;
+        if (isLeft ? (!brother->right ||
+                      brother->right->color == node<K, V>::BLACK)
+                   : (!brother->left ||
+                      brother->left->color == node<K, V>::BLACK)) {
+          (isLeft ? brother->left : brother->right)->color = node<K, V>::BLACK;
+          brother->color = node<K, V>::RED;
           isLeft ? rightRotate(brother) : leftRotate(brother);
         }
         brother->color = tested_node->parent->color;
-        tested_node->parent->color = kBlack;
-        (isLeft ? brother->right : brother->left)->color = kBlack;
+        tested_node->parent->color = node<K, V>::BLACK;
+        (isLeft ? brother->right : brother->left)->color = node<K, V>::BLACK;
         isLeft ? leftRotate(tested_node->parent)
                : rightRotate(tested_node->parent);
         tested_node = node_;
       }
     }
-    if (tested_node) tested_node->color = kBlack;
-    node_->color = kBlack;
+    if (tested_node) tested_node->color = node<K, V>::BLACK;
+    node_->color = node<K, V>::BLACK;
   }
 
   node<K, V> *getNext(node<K, V> *current) {
@@ -296,7 +299,7 @@ class Tree {
       delete node_to_remove;
       return;
     }
-    if (next_node->color == kBlack) {
+    if (next_node->color == node<K, V>::BLACK) {
       removeBalancing(node_to_remove);
     }
   }
@@ -312,7 +315,7 @@ class Tree {
               : ((is_multiset || key > parent->key_value.first) ? parent->right
                                                                 : nullptr);
     }
-    node<K, V> *new_node = new node<K, V>(key, value, kRed, last);
+    node<K, V> *new_node = new node<K, V>(key, value, node<K, V>::RED, last);
     (key < last->key_value.first ? last->left : last->right) = new_node;
     return new_node;
   }
