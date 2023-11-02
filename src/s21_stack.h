@@ -1,48 +1,50 @@
-#pragma once
-
 #include "s21_list.h"
 
 namespace s21 {
-    template<typename T>
-    class stack {
-    private:
-        list<T> data;
-    public:
-        using value_type = T;
-        using reference = T&;
-        using const_reference = const T&;
-        using size_type = size_t;
+template <typename T>
+class stack {
+ private:
+  list<T> data;
 
-        ////////////////////////////////////////
-        // CONSTRUCTORS
-        ////////////////////////////////////////
+ public:
+  using value_type = T;
+  using reference = T&;
+  using const_reference = const T&;
+  using size_type = size_t;
 
-        stack() {}
-        stack(std::initializer_list<T> values) : data(values.begin(), values.end()) {}
-        stack(const stack<T>& other) : data(other.data) {}
-        stack(stack<T>&& other) : data(std::move(other.data)) {}
-        operator=(stack&& other) {return *this = other;}
-        ~stack() {data.clear();}
+  ////////////////////////////////////////
+  // CONSTRUCTORS
+  ////////////////////////////////////////
 
-        ////////////////////////////////////////
-        // List Element access
-        ////////////////////////////////////////
+  stack() {}
+  stack(std::initializer_list<T> values) : data(values) {}
+  stack(const stack<T>& other) : data(other.data) {}
+  stack(stack<T>&& other) : data(std::move(other.data)) {}
+  stack& operator=(stack&& other) {
+    data = std::move(other.data);
+    return *this;
+  }
+  ~stack() { data.clear(); }
 
-        const_reference top() const {return data.back();}
+  ////////////////////////////////////////
+  // List Element access
+  ////////////////////////////////////////
 
-        ////////////////////////////////////////
-        // List Capacity
-        ////////////////////////////////////////
+  const_reference top() const { return data.back(); }
 
-        bool empty() const {return data.empty();}
-        size_type size() const {return data.getSize();}
+  ////////////////////////////////////////
+  // List Capacity
+  ////////////////////////////////////////
 
-        ////////////////////////////////////////
-        // List Modifiers
-        ////////////////////////////////////////
+  bool empty() const { return data.empty(); }
+  size_type size() const { return data.size(); }
 
-        void push(const T& value) {data.push_back(value);}
-        void pop() {data.pop_back();}
-        void swap(stack &other) { data.swap(other.data); }
-    };
-}
+  ////////////////////////////////////////
+  // List Modifiers
+  ////////////////////////////////////////
+
+  void push(const T& value) { data.push_back(value); }
+  void pop() { data.pop_back(); }
+  void swap(stack& other) { data.swap(other.data); }
+};
+}  // namespace s21

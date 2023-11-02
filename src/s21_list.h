@@ -1,6 +1,8 @@
 #ifndef S21_LIST_H_INCLUDED
 #define S21_LIST_H_INCLUDED
 
+#pragma once
+
 #include <algorithm>
 #include <functional>
 #include <iostream>
@@ -187,8 +189,8 @@ class list {
   // List Element access
   ////////////////////////////////////////
 
-  const_reference front() noexcept { return head->value; }
-  const_reference back() noexcept {
+  const_reference front() const { return head->value; }
+  const_reference back() const {
     return tail->prev ? tail->prev->value : tail->value;
   }
 
@@ -205,9 +207,9 @@ class list {
   // List Capacity
   ////////////////////////////////////////
 
-  bool empty() { return size() == 0; }
-  size_type size() { return std::distance(begin(), end()); }
-  size_type max_size() { return std::numeric_limits<size_type>::max(); }
+  bool empty() const { return size() == 0; }
+  size_type size() const { return std::distance(begin(), end()); }
+  size_type max_size() const { return std::numeric_limits<size_type>::max(); }
 
   ////////////////////////////////////////
   // List Modifiers
@@ -303,7 +305,6 @@ class list {
   void insert_many_front(Args&&... args) {
     (push_front(std::forward<Args>(args)), ...);
   }
-
 };
 };  // namespace s21
 
