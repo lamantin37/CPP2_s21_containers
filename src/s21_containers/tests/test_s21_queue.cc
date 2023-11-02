@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "../s21_containers.h"
+#include "gtest/gtest.h"
 
 TEST(QueueTest, DefaultConstructor) {
   s21::queue<int> q;

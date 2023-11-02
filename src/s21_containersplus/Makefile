@@ -48,7 +48,7 @@ style:
 	$(info ----------------------------------------)
 	$(info Check for code style and formatting     )
 	$(info ----------------------------------------)
-	clang-format -style=Google -i *.cc *.h
+	clang-format -style=Google -i tests/*.cc containersplus/*.h
 
 clean:
 	-rm -rf $(TARGETS)

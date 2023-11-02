@@ -1,8 +1,8 @@
 #include <chrono>
 #include <list>
 
-#include "gtest/gtest.h"
 #include "../s21_containers.h"
+#include "gtest/gtest.h"
 
 TEST(tests_of_list, front_pop_front) {
   s21::list<int> l1 = {1, 2, 3, 4};

@@ -286,8 +286,7 @@ class list {
   }
 
   void clear() {
-    std::for_each(begin(), end(),
-                  [&](const T&) { erase(iterator(head)); });
+    std::for_each(begin(), end(), [&](const T&) { erase(iterator(head)); });
   }
 
   template <typename... Args>
